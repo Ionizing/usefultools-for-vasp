@@ -1,5 +1,4 @@
 #include "OUTCAR.h"
-#include "global.h"
 
 OUTCAR::~OUTCAR() {
 	for(auto str : strData){
@@ -84,8 +83,11 @@ void OUTCAR::GetOtherVals() {
 	nSteps = 1;
 	dTotalTime = .0;
 	dVolume = .0;
+  bSpinPolarized = false;
 
 	std::vector<double> darrMagnitudes(nIons, .0);
+  std::vector<double> totForce(3, .0);
+  size_t atom_ind = 0;
 
 	for(size_t _i(0); _i!=strData.size(); ++_i) {
 		char* str = strData[_i];
@@ -115,16 +117,7 @@ void OUTCAR::GetOtherVals() {
 					}
 				}
 			}
-/*
- *
- *
- *
- *
- *
- *
- *
- *
- */
+
 			size_t len = darrMagnitudes.size();
 			double sum_of_magnitudes = .0;
 			double max_of_magnitudes = -1e10;
@@ -135,70 +128,75 @@ void OUTCAR::GetOtherVals() {
 				}
 				darrMagnitudes[i] = sqrt(sum_of_squared_force);
 				sum_of_magnitudes += darrMagnitudes[i];
-				max_of_magnitudes = ( darrMagnitudes[i] > max_of_magnitudes )
-					? darrMagnitudes[i] : max_of_magnitudes;
+				// max_of_magnitudes = ( darrMagnitudes[i] > max_of_magnitudes )
+					// ? darrMagnitudes[i] : max_of_magnitudes;
+        
+        if(darrMagnitudes[i] > max_of_magnitudes){
+          max_of_magnitudes = darrMagnitudes[i];
+          atom_ind = i + 1;
+        }
+
 			}
 			dAverage = sum_of_magnitudes / nIons;
 			dMaxForce = max_of_magnitudes;
 		}
-		if ( false == bSpinPolarized && nullptr != strstr(str, " number of electron") ){
+
+		if ( false == bSpinPolarized && nullptr != strstr(str, " number of electron ") ){
 			char* str_ptr = strtok(str, " ");
 			size_t i(0);
 			while( str_ptr != nullptr) {
 				str_ptr = strtok(nullptr, " ");
 				++i;
 			}
+      // printf("i = %zu @152 in OUTCAR.cpp\n", i); // For debug
+
 			if ( i > 5 ) {
 				bSpinPolarized = true;
 				sscanf(str, "%*s%*s%*s%*s%*s%lf", &dMagmom);
 			}
 		}
+
 		if ( nullptr != strstr(str, "LOOP:") ) {
 			double time;
 			sscanf(str, "%*s%*s%*s%*s%*s%*s%lf", &time);
 			dCPUTime += time / 60;
 		}
+
 		if ( nullptr != strstr(str, "volume of cell")) {
-			//size_t i(0);
-			//char* str_ptr = strtok(str, " ");
-			//while( nullptr != str_ptr ) {
-			//	str_ptr = strtok(nullptr, " ");
-			//	++i;
-			//}
-			//if( i > 4 ) {
 				sscanf(str, "%*s%*s%*s%*s%lf", &dVolume);
-			//}
 		}
+
 		if ( nullptr != strstr(str, "  free  energy") ) {
 			dLastEnergy = dEnergy;
 			sscanf(str, "%*s%*s%*s%*s%lf", &dEnergy);
 			dDE = log10(std::abs(dEnergy - dLastEnergy + 1.0e-12));
 
-			char stepstr[200];
-			char energystr[200];
-			char logdestr[200];
-			char iterstr[200];
-			char avgstr[200];
-			char maxfstr[200];
-			char timestr[200];
-			char volstr[200];
-			char magstr[200];
+      static const char directions[3] = {'x', 'y', 'z'};
+      double maxf = 1e-10;
+      size_t maxfdirect = 0;
+      std::vector<double> maxfatom(darrForces[atom_ind - 1]);
+      for(size_t i=0; i!=3; ++i) {
+        if(abs(maxfatom[i]) > maxf) {
+          maxf = abs(maxfatom[i]);
+          maxfdirect = i;
+        } 
+      }
 
-			sprintf(stepstr, "%4zu", nSteps);
-		//	sprintf(energystr, "Energy: %12.6f", dEnergy);
-		//	sprintf(logdestr, "Log|dE|: %6.3f", dDE);
-		//	sprintf(iterstr, "SCF: %3zu", nIterations);
-		//	sprintf(avgstr, "Avf|F|: %6.3f", dAverage);
-		//	sprintf(maxfstr, "Max|F|: %6.3f", dMaxForce);
-		//	sprintf(timestr, "Time: %6.2f", dCPUTime);
-		//	sprintf(volstr, "Vol.: %5.1f", dVolume);
-			sprintf(energystr, "%sEnergy%s:%12.6f", g_str_OKGREEN, g_str_ENDC, dEnergy);
-			sprintf(logdestr, "%sLog|dE|%s:%6.3f", g_str_OKGREEN, g_str_ENDC, dDE);
-			sprintf(iterstr, "%sSCF%s:%3zu", g_str_OKGREEN, g_str_ENDC, nIterations);
-			sprintf(avgstr, "%sAvf|F|%s:%6.3f", g_str_OKGREEN, g_str_ENDC, dAverage);
-			sprintf(maxfstr, "%sMax|F|%s:%6.3f", g_str_OKGREEN, g_str_ENDC, dMaxForce);
-			sprintf(timestr, "%sTime%s:%6.2f", g_str_OKGREEN, g_str_ENDC, dCPUTime);
-			sprintf(volstr, "%sVol.%s:%5.1f", g_str_OKGREEN, g_str_ENDC, dVolume);
+			char stepstr[200],  energystr[200],   logdestr[200],
+			    iterstr[200],   avgstr[200],      maxfstr[200],
+          timestr[200],   volstr[200],      magstr[200],
+          maxfatomstr[200];
+
+			sprintf(stepstr, "%4zu ", nSteps);
+			sprintf(energystr, "%sEnergy%s:%9.3f  ", g_str_OKGREEN, g_str_ENDC, dEnergy);
+			sprintf(logdestr, "%sLog|dE|%s:%4.1f  ", g_str_OKGREEN, g_str_ENDC, dDE);
+			sprintf(iterstr, "%sSCF%s:%3zu  ", g_str_OKGREEN, g_str_ENDC, nIterations);
+			sprintf(avgstr, "%sAvf|F|%s:%6.3f  ", g_str_OKGREEN, g_str_ENDC, dAverage);
+			sprintf(maxfstr, "%sMax|F|%s:%6.3f  ", g_str_OKGREEN, g_str_ENDC, dMaxForce);
+			sprintf(timestr, "%sTime%s:%6.2f  ", g_str_OKGREEN, g_str_ENDC, dCPUTime);
+			sprintf(volstr, "%sVol.%s:%5.1f  ", g_str_OKGREEN, g_str_ENDC, dVolume);
+      sprintf(maxfatomstr, "%sAtomInd%s:%3zu%c  ", g_str_OKGREEN, g_str_ENDC, atom_ind, directions[maxfdirect]);
+      
 
             if (nNumOfElems == nIterations) {
                 printf("%s", g_str_FAIL);
@@ -212,20 +210,25 @@ void OUTCAR::GetOtherVals() {
 				printf("FAILED\n");
 			}
 
-//			if ( dDE < dEDiff ) {
-//				printf("OK\n");
-//			}
+      if ( dDE < dEDiff ) {
+        printf("OK\n");
+      }
 
-			if (true == bSpinPolarized) {
-				sprintf(magstr, "Mag: %6.2f", dMagmom);
-				printf("%s %s  %s  %s  %s  %s  %s  %s  %s\n", 
-					stepstr, energystr, logdestr, iterstr, avgstr, maxfstr, volstr,
-					magstr, timestr);
-			} else {
-				printf("%s %s  %s  %s  %s  %s  %s  %s\n", 
-					stepstr, energystr, logdestr, iterstr, avgstr, maxfstr, volstr,
+			// if (true == bSpinPolarized) {
+				sprintf(magstr, "%sMag%s: %6.2f  ", g_str_OKGREEN, g_str_ENDC, dMagmom);
+				printf("%s%s%s%s%s%s%s%s%s%s\n", 
+					stepstr, energystr, logdestr, iterstr, avgstr, maxfstr, maxfatomstr, 
+          layout_vol ? volstr : "",
+					layout_mag ? magstr : "", 
+          timestr);
+/*			
+  			} else {
+				printf("%s%s%s%s%s%s%s%s\n", 
+					stepstr, energystr, logdestr, iterstr, avgstr, maxfstr, 
+          layout_vol ? volstr : "",
 					timestr);
-			}
+    }
+*/
             printf("%s", g_str_ENDC);
 
             ++nSteps;

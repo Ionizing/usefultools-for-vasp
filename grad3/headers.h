@@ -5,4 +5,4 @@
 #include <vector>
 #include <fstream>
 
-#define _CRT_SECURE_NO_WARNING
+// #define _CRT_SECURE_NO_WARNING
