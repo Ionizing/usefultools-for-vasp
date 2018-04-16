@@ -2,7 +2,7 @@ CC = clang++
 LFLAGS = --std=c++11 -g -Os -fno-omit-frame-pointer -fsanitize=address
 
 grad3 : main.o OUTCAR.o POSCAR.o global.o arg_parse.o
-	$(CC) -o grad3 main.o OUTCAR.o POSCAR.o global.o arg_parse.o $(LFLAGS)
+	$(CC) -o cgrad main.o OUTCAR.o POSCAR.o global.o arg_parse.o $(LFLAGS)
 
 main.o : main.cpp POSCAR.h OUTCAR.h global.h
 	$(CC) -c main.cpp $(LFLAGS)
@@ -20,5 +20,5 @@ arg_parse.o : arg_parse.h arg_parse.cpp
 	$(CC) -c arg_parse.cpp $(LFLAGS)
 
 clean :
-	touch a.o grad3
-	rm *.o grad3
+	touch a.o cgrad
+	rm *.o cgrad
