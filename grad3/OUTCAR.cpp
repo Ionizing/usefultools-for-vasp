@@ -176,11 +176,13 @@ void OUTCAR::GetOtherVals() {
       size_t maxfdirect = 0;
       std::vector<double> maxfatom(darrForces[atom_ind - 1]);
       for(size_t i=0; i!=3; ++i) {
-        if(abs(maxfatom[i]) > maxf) {
-          maxf = abs(maxfatom[i]);
+        // printf("%lf ", maxfatom[i]);
+        if(fabs(maxfatom[i]) > maxf) {
+          maxf = fabs(maxfatom[i]);
           maxfdirect = i;
         } 
-      }
+      } 
+      // puts("");
 
 			char stepstr[200],  energystr[200],   logdestr[200],
 			    iterstr[200],   avgstr[200],      maxfstr[200],
