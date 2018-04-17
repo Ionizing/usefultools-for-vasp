@@ -177,8 +177,8 @@ void OUTCAR::GetOtherVals() {
       std::vector<double> maxfatom(darrForces[atom_ind - 1]);
       for(size_t i=0; i!=3; ++i) {
         // printf("%lf ", maxfatom[i]);
-        if(fabs(maxfatom[i]) > maxf) {
-          maxf = fabs(maxfatom[i]);
+        if(std::abs(maxfatom[i]) > maxf) {
+          maxf = std::abs(maxfatom[i]);
           maxfdirect = i;
         } 
       } 
