@@ -10,4 +10,5 @@ extern const char
     g_str_ENDC[],     g_str_FAIL[];
 
 extern char fname_OUTCAR[],  fname_POSCAR[];
-extern bool layout_mag,      layout_vol;
+extern bool layout_mag,      layout_vol,
+       without_ent;

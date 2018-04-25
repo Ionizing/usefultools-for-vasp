@@ -8,6 +8,7 @@ void Parse(int argc, char** argv) {
     {"magnet",    no_argument,       0, 'm'},
     {"outcar",    required_argument, 0, 'o'},
     {"poscar",    required_argument, 0, 'p'},
+    {"without-entropy", no_argument, 0, 'e'},
     {NULL, 0, NULL, 0}
   };
 
@@ -15,7 +16,7 @@ void Parse(int argc, char** argv) {
     int option_index = 0;
 
     /* Detect the end of the options.  */
-  while((c = getopt_long(argc, argv, "hmo:p:v", 
+  while((c = getopt_long(argc, argv, "ehmo:p:v", 
           long_options, &option_index)) != -1){
     // printf("@22 in arg_parse.h\n");
     switch (c) {
@@ -39,6 +40,10 @@ void Parse(int argc, char** argv) {
         
       case 'p':
         strcpy(fname_POSCAR, optarg);
+        break;
+        
+      case 'e':
+        without_ent = true;
         break;
         
       case '?':
@@ -84,11 +89,12 @@ void PrintHelp() {
  */
   printf("usage: [[-o OUTCAR] [-p POSCAR] [-v] [-m]]\n");
   printf("Detailed usage:\n\
-      -h --help   display help\n\
-      -o --outcar specify OUTCAR file manually\n\
-      -p --poscar specipy POSCAR file manually\n\
-      -m --magnet enable magnet layout\n\
-      -v --volume enable lattice volume layout\n");
+      -h --help    display help\n\
+      -o --outcar  specify OUTCAR file manually\n\
+      -p --poscar  specipy POSCAR file manually\n\
+      -m --magnet  enable magnet layout\n\
+      -v --volume  enable lattice volume layout\n\
+      -e --without-entropy  layout Energy without entropy\n");
  //	system("pause");
     exit(EXIT_FAILURE);
   return;

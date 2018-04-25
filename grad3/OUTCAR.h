@@ -24,7 +24,7 @@ private:
 	size_t nNumOfElems, nNumOfAtoms, nIons;
 	double dEDiff;
 
-	size_t nIterations, nSteps, nMaxForceInd;
+	size_t nIterations, nSteps;
 	double dEnergy, dLastEnergy, dCPUTime,
         dDE, dMagmom, dVolume, dTotalTime,
         dAverage, dMaxForce;

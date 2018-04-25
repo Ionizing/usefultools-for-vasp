@@ -84,6 +84,14 @@ void OUTCAR::GetOtherVals() {
 	dTotalTime = .0;
 	dVolume = .0;
   bSpinPolarized = false;
+  static char _enstr[256];
+
+  if(without_ent){
+    strcpy(_enstr, "energy  without entropy");
+  } else {
+    strcpy(_enstr, "  free  energy");
+  }
+
 
 	std::vector<double> darrMagnitudes(nIons, .0);
   std::vector<double> totForce(3, .0);
@@ -166,9 +174,14 @@ void OUTCAR::GetOtherVals() {
 				sscanf(str, "%*s%*s%*s%*s%lf", &dVolume);
 		}
 
-		if ( nullptr != strstr(str, "  free  energy") ) {
+    if ( nullptr != strstr(str, _enstr)) {  
 			dLastEnergy = dEnergy;
-			sscanf(str, "%*s%*s%*s%*s%lf", &dEnergy);
+      if( !without_ent ) {
+        sscanf(str, "%*s%*s%*s%*s%lf", &dEnergy);
+      } else {
+        sscanf(str, "%*s%*s%*s%lf", &dEnergy);
+      }
+
 			dDE = log10(std::abs(dEnergy - dLastEnergy + 1.0e-12));
 
       static const char directions[3] = {'x', 'y', 'z'};
