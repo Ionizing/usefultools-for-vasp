@@ -212,9 +212,9 @@ void OUTCAR::GetOtherVals() {
 				printf("FAILED\n");
 			}
 
-      if ( dDE < dEDiff ) {
-        printf("OK\n");
-      }
+      // if ( dDE < dEDiff ) {
+        // printf("OK\n");
+      // }
 
 			// if (true == bSpinPolarized) {
 				sprintf(magstr, "%sMag%s: %6.2f  ", g_str_OKGREEN, g_str_ENDC, dMagmom);
