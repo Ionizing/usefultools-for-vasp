@@ -20,4 +20,4 @@ Detailed usage:
 
 Delete the tail after `--std=c++11` in `LFLAGS` line, and `make` . If `clang` compiler is not found, substitute it with `g++`, `icpc`, etc.
 
-**Your compiler are required to support `C++11` standard.**
+**Your compiler is required to support `C++11` standard.**
