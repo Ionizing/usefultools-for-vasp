@@ -12,6 +12,7 @@ Detailed usage:
       -p --poscar  specipy POSCAR file manually
       -m --magnet  enable magnet layout
       -v --volume  enable lattice volume layout
+      -e --without-entropy  layout Energy without entropy
 ```
 
 ![demo](http://owucpthrj.bkt.clouddn.com/FrzGKHOF7wyFkx5AV9ffH7AX3h7o)
