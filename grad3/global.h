@@ -11,4 +11,4 @@ extern const char
 
 extern char fname_OUTCAR[],  fname_POSCAR[];
 extern bool layout_mag,      layout_vol,
-       without_ent;
+            without_ent,     layout_unconverged_atoms;

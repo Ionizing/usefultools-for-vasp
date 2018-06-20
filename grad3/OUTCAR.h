@@ -1,5 +1,8 @@
 #include "headers.h"
 #include "global.h"
+#include <iostream>
+#include <iomanip>
+#include <tuple>
 
 class OUTCAR {
 public:
@@ -21,17 +24,20 @@ private:
 	std::vector<char*> strData;
 	std::vector<std::vector<double>> darrForces;
 	std::vector<std::vector<double>> darrActive;
+  /* index, force, force_x, force_y, force_z  */
+  std::vector<std::tuple<int, double, double, double, double>> darrUnconverged;
 	size_t nNumOfElems, nNumOfAtoms, nIons;
 	double dEDiff;
 
 	size_t nIterations, nSteps;
 	double dEnergy, dLastEnergy, dCPUTime,
         dDE, dMagmom, dVolume, dTotalTime,
-        dAverage, dMaxForce;
+        dAverage, dMaxForce, dFAccuracy;
 	bool bSpinPolarized,
        bSelectiveDynamics;	// Defined in POSCAR.h
 	
 	void GetNumOfAtoms();
 	void GetNumOfElems();
 	void GetEDiff();
+  void GetEDiffG();
 };

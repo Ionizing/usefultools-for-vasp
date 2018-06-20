@@ -10,4 +10,4 @@ char  fname_OUTCAR[256] = "./OUTCAR",
       fname_POSCAR[256] = "./POSCAR";
 
 bool layout_mag = false,   layout_vol = false,
-     without_ent = false;
+     without_ent = false,  layout_unconverged_atoms = false;

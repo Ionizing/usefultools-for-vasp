@@ -9,14 +9,15 @@ void Parse(int argc, char** argv) {
     {"outcar",    required_argument, 0, 'o'},
     {"poscar",    required_argument, 0, 'p'},
     {"without-entropy", no_argument, 0, 'e'},
-    {NULL, 0, NULL, 0}
+    {"unconverged-atoms", no_argument, 0, 'u'},
+    {NULL,        0,              NULL,   0}
   };
 
     /* getopt_long stores the option index here. */
     int option_index = 0;
 
     /* Detect the end of the options.  */
-  while((c = getopt_long(argc, argv, "ehmo:p:v", 
+  while((c = getopt_long(argc, argv, "ehmo:p:uv", 
           long_options, &option_index)) != -1){
     // printf("@22 in arg_parse.h\n");
     switch (c) {
@@ -45,12 +46,17 @@ void Parse(int argc, char** argv) {
       case 'e':
         without_ent = true;
         break;
+
+      case 'u':
+        layout_unconverged_atoms = true;
+        break;
         
       case '?':
+        PrintHelp();
         break;
         
       default:
-        abort();
+        std::exit(EXIT_FAILURE);
     }
   }
 }
@@ -94,7 +100,8 @@ void PrintHelp() {
       -p --poscar  specipy POSCAR file manually\n\
       -m --magnet  enable magnet layout\n\
       -v --volume  enable lattice volume layout\n\
-      -e --without-entropy  layout Energy without entropy\n");
+      -e --without-entropy  layout Energy without entropy\n\
+      -u --unconverged_atoms   layout unconverged atoms info\n");
  //	system("pause");
     exit(EXIT_FAILURE);
   return;

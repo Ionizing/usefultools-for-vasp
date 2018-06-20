@@ -13,6 +13,7 @@ Detailed usage:
       -m --magnet  enable magnet layout
       -v --volume  enable lattice volume layout
       -e --without-entropy  layout Energy without entropy
+      -u --unconverged_atoms   layout unconverged atoms info
 ```
 
 ![demo](http://owucpthrj.bkt.clouddn.com/FrzGKHOF7wyFkx5AV9ffH7AX3h7o)

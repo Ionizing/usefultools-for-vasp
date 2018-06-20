@@ -21,6 +21,7 @@ OUTCAR::OUTCAR(std::ifstream& ifs) {
 	this->GetNumOfElems();
 	this->GetEDiff();			// Can be optimized later.
 								// Get those three values in one loop.
+  this->GetEDiffG();
 	return;
 }
 
@@ -70,6 +71,17 @@ void OUTCAR::GetEDiff() {
 	//printf("%lf\n", dEDiff);
 //	puts("GetNumOfEDiff Complete");
 	return;
+}
+
+void OUTCAR::GetEDiffG() {
+  char* str_ptr = nullptr;
+  for(auto str: strData ) {
+    str_ptr = strstr(str, "EDIFFG");
+    if( nullptr != str_ptr )
+      break;
+  }
+  sscanf(str_ptr, "%*s%*s%lf", &dFAccuracy);
+  dFAccuracy = std::abs(dFAccuracy);
 }
 
 void OUTCAR::GetOtherVals() {
@@ -129,6 +141,10 @@ void OUTCAR::GetOtherVals() {
 			size_t len = darrMagnitudes.size();
 			double sum_of_magnitudes = .0;
 			double max_of_magnitudes = -1e10;
+
+      /* store the LAST record of unvonverged atom */
+      darrUnconverged.clear();
+      
 			for(size_t i(0); i!=len; ++i) {
 				double sum_of_squared_force = .0;
 				for(size_t j(0); j!=3; ++j){
@@ -138,6 +154,12 @@ void OUTCAR::GetOtherVals() {
 				sum_of_magnitudes += darrMagnitudes[i];
 				// max_of_magnitudes = ( darrMagnitudes[i] > max_of_magnitudes )
 					// ? darrMagnitudes[i] : max_of_magnitudes;
+        if(darrMagnitudes[i] >= dFAccuracy) {
+          /* index, force, force_x, force_y, force_z  */
+          auto tmp = std::make_tuple(i+1, darrMagnitudes[i], darrForces[i][0], 
+                darrForces[i][1], darrForces[i][2]);
+          darrUnconverged.push_back(tmp);
+        }
         
         if(darrMagnitudes[i] > max_of_magnitudes){
           max_of_magnitudes = darrMagnitudes[i];
@@ -203,7 +225,7 @@ void OUTCAR::GetOtherVals() {
           maxfatomstr[200];
 
 			sprintf(stepstr, "%4zu ", nSteps);
-			sprintf(energystr, "%sEnergy%s:%9.3f  ", g_str_OKGREEN, g_str_ENDC, dEnergy);
+			sprintf(energystr, "%sEnergy%s:%11.5f  ", g_str_OKGREEN, g_str_ENDC, dEnergy);
 			sprintf(logdestr, "%sLog|dE|%s:%4.1f  ", g_str_OKGREEN, g_str_ENDC, dDE);
 			sprintf(iterstr, "%sSCF%s:%3zu  ", g_str_OKGREEN, g_str_ENDC, nIterations);
 			sprintf(avgstr, "%sAvf|F|%s:%6.3f  ", g_str_OKGREEN, g_str_ENDC, dAverage);
@@ -254,6 +276,41 @@ void OUTCAR::GetOtherVals() {
 	}
 
 //	puts("OUTCAR::GetOtherVals() complete");
+  if(true == layout_unconverged_atoms) {
+    puts("\n\n");
+    printf("          EDIFFG = %lf\n", dFAccuracy);
+    if(darrUnconverged.empty()){
+      puts("All atoms are converged\n");
+      return;
+    }
+    /* sort the unconverged atoms in refer to forces decendly */
+    std::sort(darrUnconverged.begin(), darrUnconverged.end(), 
+        [](const std::tuple<int, double, double, double, double>& a, 
+           const std::tuple<int, double, double, double, double>& b){
+          return std::get<1>(a) > std::get<1>(b);
+        });
+  puts("\
+     --------------------Unconverged Atoms------------------\n\
+    | index |     Force    | force_x  | force_y  | force_z  |\n\
+    |-------------------------------------------------------|");
+  for(auto tmp : darrUnconverged) {
+  printf("    | %5d | %12.8f | %8.5f | %8.5f | %8.5f |\n",
+     std::get<0>(tmp), std::get<1>(tmp), std::get<2>(tmp),
+     std::get<3>(tmp), std::get<4>(tmp));
+  }
+  puts("     -----------------------End of table--------------------\n");
+  }
+  // std::cout << "\n\n"
+            // << "--------------------Unconverged Atoms-----------------\n"
+            // << "| index |     Force    | force_x | force_y | force_z |\n";
+  // for(auto tmp : darrUnconverged){
+      // std::cout << "|" << std::setw(7) << std::get<0>(tmp) 
+            // << "|" << std::setw(9) << std::get<1>(tmp) 
+            // << "|" << std::setw(9) << std::get<2>(tmp) 
+            // << "|" << std::setw(9) << std::get<3>(tmp)
+            // << "|" << std::setw(9) << std::get<4>(tmp) << "|\n";
+  // }
+  // std::cout << "-----------------End of table-----------------\n";
 	return;
 }
 
