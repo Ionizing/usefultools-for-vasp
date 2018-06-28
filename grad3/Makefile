@@ -1,5 +1,5 @@
-CC = clang++
-LFLAGS = --std=c++11 -O3 -Wall -g -Os -fno-omit-frame-pointer -fsanitize=address
+CC = g++
+LFLAGS = --std=c++11 -O3 -Wall -g -Os #-fno-omit-frame-pointer -fsanitize=address
 
 grad3 : main.o OUTCAR.o POSCAR.o global.o arg_parse.o
 	$(CC) -o cgrad main.o OUTCAR.o POSCAR.o global.o arg_parse.o $(LFLAGS)

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iomanip>
 #include <tuple>
+#include <algorithm>
 
 class OUTCAR {
 public:

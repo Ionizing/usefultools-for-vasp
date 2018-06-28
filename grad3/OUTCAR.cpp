@@ -172,19 +172,23 @@ void OUTCAR::GetOtherVals() {
 		}
 
 		if ( false == bSpinPolarized && nullptr != strstr(str, " number of electron ") ){
-			char* str_ptr = strtok(str, " ");
-			size_t i(0);
-			while( str_ptr != nullptr) {
-				str_ptr = strtok(nullptr, " ");
-				++i;
-			}
+      size_t i(0);
+      for(char* p=strtok(str, " "); nullptr!=p; p=strtok(nullptr," ")) {
+        ++i;
+        // printf("%s %zu\n", p, i);
+      }
       // printf("i = %zu @152 in OUTCAR.cpp\n", i); // For debug
 
-			if ( i > 5 ) {
-				bSpinPolarized = true;
-				sscanf(str, "%*s%*s%*s%*s%*s%lf", &dMagmom);
-			}
+      if ( i > 5 ) {
+        bSpinPolarized = true;
+        sscanf(str, "%*s%*s%*s%*s%*s%lf", &dMagmom);
+      }
 		}
+
+    if (true == bSpinPolarized && nullptr != strstr(str, " number of electron ")) {
+      sscanf(str, "%*s%*s%*s%*s%*s%lf", &dMagmom);
+      // printf("  @189 dMagmom = %lf\n", dMagmom);
+    }
 
 		if ( nullptr != strstr(str, "LOOP:") ) {
 			double time;
@@ -252,7 +256,7 @@ void OUTCAR::GetOtherVals() {
       // }
 
 			// if (true == bSpinPolarized) {
-				sprintf(magstr, "%sMag%s: %6.2f  ", g_str_OKGREEN, g_str_ENDC, dMagmom);
+				sprintf(magstr, "%sMag%s: %8.4f  ", g_str_OKGREEN, g_str_ENDC, dMagmom);
 				printf("%s%s%s%s%s%s%s%s%s%s\n", 
 					stepstr, energystr, logdestr, iterstr, avgstr, maxfstr, maxfatomstr, 
           layout_vol ? volstr : "",
@@ -279,6 +283,9 @@ void OUTCAR::GetOtherVals() {
   if(true == layout_unconverged_atoms) {
     puts("\n\n");
     printf("          EDIFFG = %lf\n", dFAccuracy);
+    printf("      %4d/%4d atoms are unconverged\n", 
+        static_cast<int>(darrUnconverged.size()),
+        static_cast<int>(nNumOfAtoms));
     if(darrUnconverged.empty()){
       puts("All atoms are converged\n");
       return;
