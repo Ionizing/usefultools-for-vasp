@@ -36,4 +36,5 @@
 
 # cquery caches
 .cquery
-~/
+\~/
+*.gch
