@@ -33,3 +33,7 @@
 *.exe
 *.out
 *.app
+
+# cquery caches
+.cquery
+~/
