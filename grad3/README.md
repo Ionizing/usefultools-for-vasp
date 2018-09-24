@@ -16,7 +16,7 @@ Detailed usage:
       -u --unconverged_atoms   layout unconverged atoms info
 ```
 
-If it run correctly, you should get [this](https://paste.ubuntu.com/p/QNDKhVYB5S/) .
+If it runs correctly, you should get [this](https://paste.ubuntu.com/p/QNDKhVYB5S/) .
 
 ## Make
 
