@@ -16,9 +16,11 @@ Detailed usage:
       -u --unconverged_atoms   layout unconverged atoms info
 ```
 
-![demo](http://owucpthrj.bkt.clouddn.com/FrzGKHOF7wyFkx5AV9ffH7AX3h7o)
+If it run correctly, you should get [this](https://paste.ubuntu.com/p/QNDKhVYB5S/) .
 
 ## Make
+
+`make test` is recommended, if you trust my code, just `make` and skip the test XD;
 
 Delete the tail after `--std=c++11` in `LFLAGS` line, and `make` . If `clang` compiler is not found, substitute it with `g++`, `icpc`, etc.
 
