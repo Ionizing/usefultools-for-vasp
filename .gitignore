@@ -36,5 +36,5 @@
 
 # cquery caches
 *.cquery
-POSCAR_parser/\~/
+*\~
 *.gch
