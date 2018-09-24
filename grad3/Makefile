@@ -1,16 +1,13 @@
 CC = g++
-LFLAGS = --std=c++11 -O3 -Wall -g -Os #-fno-omit-frame-pointer -fsanitize=address
+LFLAGS = --std=c++11 -O3 -Wall -g -Os -fno-omit-frame-pointer -fsanitize=address
+NUMBERS = 1 2 3 4
 
 grad3 : main.o OUTCAR.o POSCAR.o global.o arg_parse.o
 	$(CC) -o cgrad main.o OUTCAR.o POSCAR.o global.o arg_parse.o $(LFLAGS)
 
-test : grad3
-	unzip ./tests.zip
-	./cgrad -o ./test1/OUTCAR -p ./test1/POSCAR -mvu
-	./cgrad -o ./test2/OUTCAR -p ./test2/POSCAR -mvu
-	./cgrad -o ./test3/OUTCAR -p ./test3/POSCAR -mvu
-	./cgrad -o ./test4/OUTCAR -p ./test4/POSCAR -mvu
-	./cgrad -o ./test5/OUTCAR -p ./test5/POSCAR -mvu
+test : grad3 $(TEST_FILES)
+	unzip -o ./tests.zip
+	$(foreach var,$(NUMBERS), ./cgrad -mvu -o ./test$(var)/OUTCAR -p ./test$(var)/POSCAR;)
 
 main.o : main.cpp POSCAR.h OUTCAR.h global.h
 	$(CC) -c main.cpp $(LFLAGS)
@@ -28,4 +25,4 @@ arg_parse.o : arg_parse.h arg_parse.cpp
 	$(CC) -c arg_parse.cpp $(LFLAGS)
 
 clean :
-	@rm -r *.o cgrad test1 test2 test3 test4 test5
+	-@rm -r *.o cgrad test1 test2 test3 test4 test5 2> /dev/null || true
