@@ -154,7 +154,8 @@ Ni                  Name(s) of atomic type(s)
                 tmp_num, std::vector<double>(6, -10)))); 
               // initialize tmp_num * 3 array
         _nAtoms += tmp_num;
-      } 
+      } // end while 
+      _isHasElemTags = true;
     } else {
       std::cout << "  Invalid POSCAR file.  Element tags / Atom nums error  " << std::endl;
       std::exit(1);

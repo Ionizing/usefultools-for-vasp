@@ -4,5 +4,5 @@ fcc: Ni Header      (comment)
 0.0 0.5 0.5 
 0.5 0.0 0.5         Bravais matrix
 1                   Number of atoms (of each type)
-Rartesian           Cartesian or Direct coordinates
-0 0 0 (T T T)       positions of the atoms 
+Dartesian           Cartesian or Direct coordinates
+0 0 0 T T T       positions of the atoms 

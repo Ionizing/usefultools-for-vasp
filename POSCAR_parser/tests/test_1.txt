@@ -7,4 +7,4 @@ Ni                  Name(s) of atomic type(s)
 1                   Number of atoms (of each type)
 Selective Dynamics  (optional: selective dynamics)
 Cartesian           Cartesian or Direct coordinates
-0 0 0 (T T T)       positions of the atoms 
+0 0 0 T T T       positions of the atoms 

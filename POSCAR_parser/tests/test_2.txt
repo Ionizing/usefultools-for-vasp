@@ -6,4 +6,4 @@ fcc: Ni Header      (comment)
 Ni                  Name(s) of atomic type(s)
 1                   Number of atoms (of each type)
 Cartesian           Cartesian or Direct coordinates
-0 0 0 (T T T)       positions of the atoms 
+0 0 0 T T T       positions of the atoms 
