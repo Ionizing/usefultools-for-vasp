@@ -130,7 +130,7 @@ Ni                  Name(s) of atomic type(s)
         }
         _pElemInfo.push_back(std::pair<std::string, std::vector<std::vector<double>>>(
               "_", std::vector<std::vector<double>>(
-                natom_per_elem, std::vector<double>(3, -10)))); 
+                natom_per_elem, std::vector<double>(6, -10)))); 
         // initialize natom_.. * 3 array
         _nAtoms += natom_per_elem;
       }
@@ -151,10 +151,11 @@ Ni                  Name(s) of atomic type(s)
         }
         _pElemInfo.push_back(std::pair<std::string, std::vector<std::vector<double>>>(
               tmp_tag, std::vector<std::vector<double>>(
-                tmp_num, std::vector<double>(3, -10)))); 
+                tmp_num, std::vector<double>(6, -10)))); 
               // initialize tmp_num * 3 array
         _nAtoms += tmp_num;
-      } 
+      } // end while 
+      _isHasElemTags = true;
     } else {
       std::cout << "  Invalid POSCAR file.  Element tags / Atom nums error  " << std::endl;
       std::exit(1);
@@ -177,11 +178,11 @@ Ni                  Name(s) of atomic type(s)
     for (int i=0; i!=2; ++i) {
       std::getline(ifs, tmpstr);
       trim(tmpstr);
-      if ('C' == std::toupper(tmpstr[0])) {
-        _isCartesian = true;
+      if ('C' == std::toupper(tmpstr[0]) || 'K' == std::toupper(tmpstr[0])) {
+        _isCartesian = true; // Cartesian coordinates
         break;
-      } else if ('R' == std::toupper(tmpstr[0])) {
-        _isCartesian = false;
+      } else if ('D' == std::toupper(tmpstr[0])) {
+        _isCartesian = false; // Direct / Fractional coordinates
         break;
       } else if ('S' == std::toupper(tmpstr[0])) {
         _isSelDyn = true;
@@ -216,6 +217,22 @@ Ni                  Name(s) of atomic type(s)
 
         for(int j=0; j!=3; ++j) {
           iss >> e.second[i][j];
+        }
+
+        if (_isSelDyn) {
+          char DynamicsTag;
+          for (int j=3; j!=6; ++j) {
+            iss >> DynamicsTag;
+            if ('T' == std::toupper(DynamicsTag)) {
+              e.second[i][j] = 1;
+            } else if ('F' == std::toupper(DynamicsTag)) {
+              e.second[i][j] = 0;
+            } else {
+              std::cout << "  Invalid POSCAR inputed, Selective Dynamics Tag: " << 
+                DynamicsTag << " invalid. " << std::endl;
+              std::exit(1);
+            }
+          }
         }
       }
     } // end for
