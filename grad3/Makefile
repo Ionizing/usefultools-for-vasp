@@ -1,6 +1,6 @@
 CC = g++
-LFLAGS = --std=c++11 -O3 -Wall -g -Os -fno-omit-frame-pointer -fsanitize=address
-NUMBERS = 1 2 3 4
+LFLAGS = --std=c++11 -O3 -Wall -g -Os #-fno-omit-frame-pointer -fsanitize=address
+NUMBERS = 1 2 3 4 5
 
 grad3 : main.o OUTCAR.o POSCAR.o global.o arg_parse.o
 	$(CC) -o cgrad main.o OUTCAR.o POSCAR.o global.o arg_parse.o $(LFLAGS)
@@ -25,4 +25,4 @@ arg_parse.o : arg_parse.h arg_parse.cpp
 	$(CC) -c arg_parse.cpp $(LFLAGS)
 
 clean :
-	-@rm -r *.o cgrad test1 test2 test3 test4 test5 2> /dev/null || true
+	-@rm -r *.o *.gch \~ cgrad test1 test2 test3 test4 test5 2> /dev/null || true

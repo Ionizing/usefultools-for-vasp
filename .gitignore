@@ -1,5 +1,5 @@
 # MacOS trash files
-*.DS_Store
+.DS_Store
 
 # Prerequisites
 *.d
@@ -36,5 +36,5 @@
 
 # cquery caches
 *.cquery
-*\~
+/\~/
 *.gch
