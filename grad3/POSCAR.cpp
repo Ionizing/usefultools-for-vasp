@@ -35,16 +35,25 @@ POSCAR::POSCAR(std::ifstream& ifs, const size_t numAtoms) {
 	nIons = 0;
 	size_t nIons_tmp = 0;
 
+#ifdef DEBUG_MODE
+  puts(str_tmp);
+#endif
 	char* str_ptr = strtok(str_tmp, " ");
 	while( nullptr != str_ptr ) {
+    nIons_tmp = 0;
 		sscanf(str_ptr, "%zu", &nIons_tmp);
+#ifdef DEBUG_MODE
+    printf("DEBUG: %zu\n", nIons_tmp);
+#endif
 		nIons += nIons_tmp;
 		str_ptr = strtok(nullptr, " ");
 	}
 	//while( 0 != (sscanf(str_tmp, "%zu", &nIons_tmp)) ){
 	//	nIons += nIons_tmp;
 	//}
-
+#ifdef DEBUG_MODE
+  printf("DEBUG:NIONS = %zu, nAtoms = %zu\n", nIons, nAtoms);
+#endif
 	if (nIons != nAtoms) {
         printf("%s", g_str_FAIL);
 		printf("Incompactable values in POSCAR and OUTCAR\n");
