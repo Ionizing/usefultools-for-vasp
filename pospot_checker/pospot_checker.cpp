@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 
   
   std::vector<std::string> POSCAR_vec = _readWholeFileToStrVec(poscar);
-  std::string ElemLine = POSCAR_vec[5];
+  std::string ElemLine = POSCAR_vec.at(5);
 #ifdef DEBUG
   std::cout << "DEBUG: POSCAR ElemLine is "<< ElemLine << std::endl;
 #endif
