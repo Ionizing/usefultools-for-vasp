@@ -27,9 +27,12 @@ int main(int argc, char* argv[]) {
   // MatrixXd matrix2 = io2.readMatrix<double> (rows, cols);
   // std::cout << "matrix2 = \n" << matrix2 << std::endl;
   std::cout << "matrix2 = \n" << std::endl;
-  for (int i=0; i!=rows; ++i) {
-    std::cout << io2.readVectorRow<double>(cols) << std::endl;
-  }
+  // for (int i=0; i!=rows; ++i) {
+    // std::cout << io2.readVectorRow<double>(cols) << std::endl;
+  // }
+  
+  matrix = io2.readMatrix<double>(rows, cols);
+  std::cout << matrix << std::endl;
 
   return 0;
 }

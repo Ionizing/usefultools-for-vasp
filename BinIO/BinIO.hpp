@@ -1,3 +1,8 @@
+
+#define EIGEN_USE_BLAS
+#define EIGEN_USE_LAPACK
+// #define EIGEN_USE_BLAS
+
 #pragma once
 
 #ifndef BINIO_H
@@ -74,8 +79,7 @@ namespace ionizing {
 
   template <typename T>
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> BinIO::readMatrix(const long nRow, const long nCol) {
-      Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> matrix;
-      matrix.resize(nRow, nCol);
+      Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> matrix(nRow, nCol);
       ifs.read((char*) matrix.data(), nRow * nCol * sizeof(T));
       return matrix;
     }

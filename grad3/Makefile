@@ -1,4 +1,4 @@
-CC = g++
+CC = c++
 LFLAGS = --std=c++11 -O3 -Wall -g -Os #-fno-omit-frame-pointer -fsanitize=address
 NUMBERS = 1 2 3 4 5 6
 
