@@ -1,29 +1,26 @@
-
-#define EIGEN_USE_BLAS
-#define EIGEN_USE_LAPACK
-// #define EIGEN_USE_BLAS
-
 #pragma once
 
 #ifndef BINIO_H
 #define BINIO_H
 
+// #define EIGEN_USE_BLAS
+// #define EIGEN_USE_LAPACK
+
 #include <iostream>
 #include <fstream>
 #include <algorithm>
 #include <string>
-#include <Eigen/Eigen>
+#include "Eigen/Eigen"
 
 namespace ionizing {
-  // using namespace std;
-  // using namespace Eigen;
-
   class BinIO {
   public:
     BinIO(const char* FileName);
     ~BinIO();
     BinIO(const BinIO&) = delete;             // Prevent 'copying' operations.
     BinIO& operator=(const BinIO&) = delete;
+    void seek(const int n);
+    int getFileSize() const;
 
   template <typename T>
     T readElement();
@@ -40,34 +37,16 @@ namespace ionizing {
   private:
     std::ifstream ifs;
     std::ofstream ofs;
+    int _fileSize;
 
   private:
     void _openFile(const char* FileName);
 
   }; // end of class BinIO
+};
 
-/********************************************/
-/********  start of implementations  ********/
-/********************************************/
 
-  BinIO::BinIO(const char* FileName) {
-    _openFile(FileName);
-    std::cout << "BinIO created successful" << std::endl;
-  }
-
-  BinIO::~BinIO() {
-    ifs.close();
-    std::cout << "BinIO destructed" << std::endl;
-  }
-
-  void BinIO::_openFile(const char* FileName) {
-    ifs.open(FileName, std::ios::binary | std::ios::in);
-    std::string str_stars(10, '*');
-    if (ifs.fail()) {
-      std::cerr << str_stars << " Binary File \"" << FileName << "\" open failed " << str_stars << std::endl;
-      std::abort();
-    }
-  }
+namespace ionizing {
 
   template <typename T>
     T BinIO::readElement() {
@@ -94,5 +73,6 @@ namespace ionizing {
       return readMatrix<T>(1, size);
     } 
 
-};
+
+}
 #endif  // BINIO_H
