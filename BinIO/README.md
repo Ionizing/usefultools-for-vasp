@@ -5,4 +5,4 @@ Reqirements:
   - C++11 support
   - clang compiler
 
-**Matrix is column first stored in Eigen**
+**Matrix is set to ROW MAJOR stored in Eigen**
