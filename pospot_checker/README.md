@@ -4,7 +4,8 @@
 complete support of std::regex, eg: gcc 4.9 or higher**
 
 ~~The bash version does the same thing.~~
-Bash version can does more things.
+
+Bash version can do more things.
 Contributed by Tang Gang.
 
 1. Use regex to extract element info;
