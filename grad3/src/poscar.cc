@@ -2,8 +2,59 @@
 
 namespace ionizing {
 
+  /*
+   * initilize class with istream&
+   */
+  void POSCAR::init(std::istream& is) {
+    std::stringstream buffer;
+    buffer << is.rdbuf();
+    _content = buffer.str();
+
+    buffer.seekp(0);
+    std::vector<string> str_vec;
+    while (! buffer.eof()) {
+      string line;
+      std::getline(buffer, line);
+      str_vec.emplace_back(line);
+    }
+
+    _contentVector.resize(str_vec.size());
+    for (long i=0; i!=str_vec.size(); ++i) {
+      _contentVector(i) = std::move(str_vec[i]);
+    }
+  }
+
+  void POSCAR::read_all(const VecStr& str_vec) {
+    int n_current_line = 0;
+    read_header(str_vec(n_current_line++));
+    read_scale(str_vec(n_current_line++));
+    read_lattice_vectors(str_vec.segment<3>(n_current_line));
+    n_current_line += 3;
+
+    if (read_element_vector(str_vec.segment<2>(n_current_line)) ){
+      n_current_line += 2;
+    } else {
+      n_current_line += 1;
+    }
+
+    if (read_selective_dynamics(str_vec(n_current_line))) {
+      ++n_current_line;
+    }
+
+    read_cartesian(str_vec(n_current_line++));
+    read_atom_positions(str_vec.segment(n_current_line, _nAtoms));
+    
+  }
 
 
+  POSCAR::POSCAR(std::istream& is) {
+    init(is);
+  }
+
+  POSCAR::POSCAR(const char* file_name) {
+    std::ifstream ifs{file_name};
+    init(ifs);
+  }
 
   void POSCAR::read_header(const string str) {
     {
@@ -37,7 +88,7 @@ namespace ionizing {
     }
   }
 
-  void POSCAR::read_element_vector (const VecStr& str_vec) {
+  bool POSCAR::read_element_vector (const VecStr& str_vec) {
     if (str_vec.rows() < 2) {
       std::cerr << "\nERROR: Not enough string lines provided for '" << __FUNCTION__ << "'.\n" << std::endl;
       std::abort();
@@ -97,22 +148,32 @@ namespace ionizing {
     }
 
     _elemVector.resize(cnt_elem_atom);
+    _nAtoms = 0;
     for (int i=0; i!=cnt_elem_atom; ++i) {
       _elemVector(i).Name = (-1 == cnt_elem_type) ? "_" : elem_types[i];
       _elemVector(i).Num = atom_nums[i];
+      _nAtoms += atom_nums[i];
     }
+
+/*
+ * if no elem type tags, return false;
+ * esle return true;
+ */
+    return !(-1 == cnt_elem_type);
   }
 
-  void POSCAR::read_selective_dynamics(const string str) {
+  bool POSCAR::read_selective_dynamics(const string str) {
     string str_trim = trim_copy(str);
     switch (str_trim[0]) {
       case 's':
       case 'S': _isSelectiveDynamics = true; break;
       default : _isSelectiveDynamics = false; break;
     }
+
+    return _isSelectiveDynamics;
   }
 
-  void POSCAR::read_cartesian(const string str) {
+  bool POSCAR::read_cartesian(const string str) {
     string str_trim = trim_copy(str);
     switch (str_trim[0]) {
       case 'c':
@@ -121,14 +182,77 @@ namespace ionizing {
       case 'D': _isCartesian = false; break;
       default: std::cerr << "\nERROR: Invalid atom position types (cartesian or fractional ?).\n" << std::endl;
     }
+
+    return _isCartesian;
   }
   
   void POSCAR::read_atom_positions(const VecStr& str_vec) {
+    _atomPositions.resize(_nAtoms);
+    _atomComments.resize(_nAtoms);
+    _atomSelectiveDynamics.resize(_nAtoms);
 
-  } 
+    for (int i=0; i!=_nAtoms; ++i) {
+      std::stringstream ss(str_vec(i));
 
-  void POSCAR::read_atom_sel_dynamics(const VecStr& str_vec) {
+      // Read positions
+      for (int j=0; j!=3; ++j) {
+        ss >> _atomPositions(i, j);
+      }
 
-  }
+      if (_isSelectiveDynamics) {
+        // Read Selective Dynamics tags
+        for (int j=0; j!=3; ++j) {
+          std::string seldyn;
+          ss >> seldyn;
+          switch (seldyn[0]) {
+            case 't':
+            case 'T': _atomSelectiveDynamics(i, j) = true ; break;
+            case 'f':
+            case 'F': _atomSelectiveDynamics(i, j) = false; break;
+            default : std::cerr << "\nERROR: Invalid selective dynamics tag: " << seldyn << " .\n" << std::endl; 
+                      break;
+          }
+        }
+      } // end if (_isSelectiveDynamics)
+
+      // Read comments for each atom
+      {
+        std::string tmp;
+        ss >> tmp;
+        if ('!' != tmp[0]) {
+          std::cerr << "\nERROR: Invalid comment prefix: " << tmp[0] << " \n" << std::endl;
+          std::abort();
+        }
+        _atomComments(i) = std::move(tmp);
+      }
+    }
+
+    
+
+
+
+  } // end of read_atom_positions
+
+/*
+ ****************************************************
+ *********** END OF PRIVATE FUNCTIONS ***************
+ ****************************************************
+ */
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
 
 }

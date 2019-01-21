@@ -10,6 +10,9 @@ class TextIO {
   public:
     TextIO            (const char*         file_name);
     TextIO            (      std::istream& is);
+    /*
+     * TextIO            (const string&       str);
+     */
     ~TextIO           ();
     TextIO            (const TextIO&       ) = delete;
     TextIO& operator= (const TextIO&       ) = delete;
@@ -43,6 +46,13 @@ template <typename T>
   T TextIO::readElement() {
     T out;
     _is >> out;
+    if (_is.fail()) {
+      std::string tmp;
+      _is >> tmp;
+      std::cerr << "\nERROR: cannot read " << tmp << " into "
+        << typeid(T).name() << " \n" << std::endl;
+      std::abort();
+    }
     return out;
   }
 
@@ -56,7 +66,7 @@ MatT<T> TextIO::readMatrix(const long rows, const long cols) {
   MatT<T> out(rows, cols);
   for (long i=0; i!=rows; ++i) {
     for (long j=0; j!=cols; ++j) {
-      _is >> out(i, j);
+      out(i, j) = readElement<T>();
     }
   }
   return out;

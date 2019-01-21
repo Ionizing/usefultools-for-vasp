@@ -109,11 +109,6 @@ static_assert(
     );
 
 
-struct Element {
-  string Name;
-  int    Num;
-  Element(const char* name, const int num) : Name(name), Num(num) {}
-};
 
 }
 
