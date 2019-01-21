@@ -19,9 +19,11 @@ namespace ionizing {
     }
 
     _contentVector.resize(str_vec.size());
-    for (long i=0; i!=str_vec.size(); ++i) {
+    for (size_t i=0; i!=str_vec.size(); ++i) {
       _contentVector(i) = std::move(str_vec[i]);
     }
+
+    read_all(_contentVector);
   }
 
   void POSCAR::read_all(const VecStr& str_vec) {
@@ -47,32 +49,42 @@ namespace ionizing {
   }
 
 
-  POSCAR::POSCAR(std::istream& is) {
+  POSCAR::POSCAR(std::istream& is) : _filename{"POSCAR"} {
     init(is);
   }
 
-  POSCAR::POSCAR(const char* file_name) {
+  POSCAR::POSCAR(const char* file_name) : _filename{file_name} {
     std::ifstream ifs{file_name};
+    if (!ifs.good()) {
+      std::cerr << "\nERROR: Open POSCAR file '" << file_name << "' failed.\n" << std::endl;
+    }
     init(ifs);
   }
 
-  void POSCAR::read_header(const string str) {
+  POSCAR::~POSCAR() {
+    std::cout << "POSCAR class destructed.\n" << std::endl;
+  }
+
+  string POSCAR::read_header(const string str) {
     {
       std::cout << "\nDEBUG: " << __FILE__ << __FUNCTION__ << " str = :\n" << str << std::endl;
     }
     _header = str;
+    return str;
   }
 
-  void POSCAR::read_scale(const string str) {
+  double POSCAR::read_scale(const string str) {
     std::stringstream ss(trim_copy(str));
     ss >> _scale;
     if (ss.fail()) {
       std::cerr << "\nERROR: Invalid scale in POSCAR: " << str << " \n";
       std::abort();
     }
+
+    return _scale;
   }
 
-  void POSCAR::read_lattice_vectors(const VecStr& str_vec) {
+  Mat33d POSCAR::read_lattice_vectors(const VecStr& str_vec) {
     if (str_vec.rows() < 3) {
       std::cerr << "\nERROR: Not enough string lines provied for '" << __FUNCTION__ << "'.\n" << std::endl;
       std::abort();
@@ -86,6 +98,9 @@ namespace ionizing {
         std::abort();
       }
     }
+
+    _recipLattVecs = _latticeCartVecs.inverse();
+    return _latticeCartVecs;
   }
 
   bool POSCAR::read_element_vector (const VecStr& str_vec) {
@@ -186,10 +201,13 @@ namespace ionizing {
     return _isCartesian;
   }
   
-  void POSCAR::read_atom_positions(const VecStr& str_vec) {
-    _atomPositions.resize(_nAtoms);
+  MatX3d POSCAR::read_atom_positions(const VecStr& str_vec) {
+    _atomCartesianPositions.resize(_nAtoms, 3);
+    _atomDirectPositions   .resize(_nAtoms, 3);
+    _atomPositions         .resize(_nAtoms, 3);
+    
     _atomComments.resize(_nAtoms);
-    _atomSelectiveDynamics.resize(_nAtoms);
+    _atomSelectiveDynamics.resize(_nAtoms, 3);
 
     for (int i=0; i!=_nAtoms; ++i) {
       std::stringstream ss(str_vec(i));
@@ -219,19 +237,76 @@ namespace ionizing {
       {
         std::string tmp;
         ss >> tmp;
-        if ('!' != tmp[0]) {
+        if ('!' != tmp[0] and 0 != tmp[0]) {
           std::cerr << "\nERROR: Invalid comment prefix: " << tmp[0] << " \n" << std::endl;
           std::abort();
         }
         _atomComments(i) = std::move(tmp);
       }
+    } // end for
+
+/*
+ * Fractional coordinate --> Cartesian Coordinate
+ * 
+ *                 | Ax, Ay, Az |
+ *  r' = [x, y, z] | Bx, By, Bz | = r * Acell
+ *                 | Cx, Cy, Cz |
+ *
+ * Cartesian coordinate --> Fractional Coordinate
+ *
+ *                    | Ax, Ay, Az | -1
+ *  r  = [x', y', z'] | Bx, By, Bz |    = r' * Bcell
+ *                    | Cx, Cy, Cz |   
+ */
+
+    if (_isCartesian) {
+      _atomDirectPositions = (_atomPositions * _latticeCartVecs);
+    } else {
+      _atomCartesianPositions = (_atomPositions * _recipLattVecs);
+    }
+    return _atomPositions;
+  } // end of read_atom_positions
+
+/*
+ * Fractional coordinate --> Cartesian Coordinate
+ * 
+ *                 | Ax, Ay, Az |
+ *  r' = [x, y, z] | Bx, By, Bz | = r * Acell
+ *                 | Cx, Cy, Cz |
+ *
+ * Cartesian coordinate --> Fractional Coordinate
+ *
+ *                    | Ax, Ay, Az | -1
+ *  r  = [x', y', z'] | Bx, By, Bz |    = r' * Bcell
+ *                    | Cx, Cy, Cz |   
+ */
+  MatX3d POSCAR::convert_coordinate(const bool is_to_cart) {
+    if (is_to_cart) { // to cartesian
+      if (!_isCartesian) {
+        _atomPositions = _atomCartesianPositions;
+        _isCartesian = true;
+      }
+    } else {          // to direct/fractional
+      if (_isCartesian) {
+        _atomPositions = _atomDirectPositions;
+        _isCartesian = false;
+      }
     }
 
-    
+    return _atomPositions;
+  }
 
+  POSCAR::VecStr POSCAR::mark_atom_with_elem () {
+    _elementOfEachAtom.resize(_nAtoms);
+    int cnt{0};
+    for (auto elem : _elemVector) {
+      for (int i=0; i!=elem.Num; ++i) {
+        _elementOfEachAtom(cnt++) = elem.Name;
+      }
+    }
 
-
-  } // end of read_atom_positions
+    return _elementOfEachAtom;
+  }
 
 /*
  ****************************************************
@@ -239,13 +314,111 @@ namespace ionizing {
  ****************************************************
  */
 
+  const string& POSCAR::getHeader() const {
+    return _header;
+  }
+
+  const double& POSCAR::getScale() const {
+    return _scale;
+  }
+
+  const Mat33d& POSCAR::getLatticVector() const {
+    return _latticeCartVecs;
+  }
+
+  const POSCAR::VecElem& POSCAR::getElementVector() const {
+    return _elemVector;
+  }
+
+  const bool& POSCAR::getIsSelectiveDynamics() const {
+    return _isSelectiveDynamics;
+  }
+
+  const POSCAR::MatX3b& POSCAR::getSelectiveDynamicsMatrix() const {
+    return _atomSelectiveDynamics;
+  }
+
+  const bool& POSCAR::getIsCartesian() const {
+    return _isCartesian;
+  }
+
+  const MatX3d& POSCAR::getAtomPositions() const {
+    return _atomPositions;
+  }
+
+  const MatX3d& POSCAR::getCartesianPositions() const {
+    return _atomCartesianPositions;
+  }
+
+  const MatX3d& POSCAR::getDirectPositions() const {
+    return _atomDirectPositions;
+  }
+
+  int POSCAR::getNAtoms() const {
+    return _nAtoms;
+  }
+
+  void POSCAR::convertToCartesian() {
+    convert_coordinate(true);
+  }
+
+  void POSCAR::convertToDirect() {
+    convert_coordinate(false);
+  }
+
+  void POSCAR::saveAsDuplicate(const char* file_name,
+                               const bool  is_cartesian) const {
+    using std::setw;
+    string fname;
+    if (std::strlen(file_name) == 0) {
+      fname = string{_filename} + "_saved.vasp";
+    } else {
+      fname = string{file_name};
+    }
+
+    std::stringstream ss;
+    ss << _header << "\n"
+       << _scale  << "\n"
+       << _latticeCartVecs << "\n";
+    if (!_elemVector(0).Name.empty()) {
+      for (Element elem : _elemVector) {
+        ss << setw(4) << elem.Name;
+      } ss << "\n";
+    }
+
+    for (Element elem : _elemVector) {
+      ss << setw(4) << elem.Num;
+    } ss << "\n";
+
+    if (_isSelectiveDynamics) {
+      ss << "Selective Dynamics\n";
+    }
+
+    if (is_cartesian) {
+      ss << "Cartesian\n";
+    } else {
+      ss << "Direct\n";
+    }
+    MatX3d atom_position = (is_cartesian) ? 
+        _atomCartesianPositions : _atomDirectPositions;
+    
+    for (int i=0; i!=_nAtoms; ++i) {
+      ss << atom_position.row(i);
+      if (_isSelectiveDynamics) {
+        for (int j=0; j!=3; ++j) {
+          ss << setw(3) << (_atomSelectiveDynamics(i) == true ? "T" : "F");
+        }
+      }
+
+      ss << "  " << _atomComments(i) << "\n";
+    }
+    std::ofstream ofs(fname.c_str());
+    ofs << ss.str();
+    std::cout << "\nInfo: POSCAR saved to '" << fname << "'.\n";
+  }
 
 
 
-
-
-
-  
 
 
 

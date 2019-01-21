@@ -1,0 +1,82 @@
+[
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/error.o", 
+   "-c", 
+   "src/error.cc", 
+   "-I./include", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra"
+  ], 
+  "file": "src/error.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/textio.o", 
+   "-c", 
+   "src/textio.cc", 
+   "-I./include", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra"
+  ], 
+  "file": "src/textio.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/stringops.o", 
+   "-c", 
+   "src/stringops.cc", 
+   "-I./include", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra"
+  ], 
+  "file": "src/stringops.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/outcar.o", 
+   "-c", 
+   "src/outcar.cc", 
+   "-I./include", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra"
+  ], 
+  "file": "src/outcar.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/poscar.o", 
+   "-c", 
+   "src/poscar.cc", 
+   "-I./include", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra"
+  ], 
+  "file": "src/poscar.cc"
+ }
+]

@@ -13,6 +13,7 @@ struct Element {
   string Name;
   int    Num;
   Element(const char* name, const int num) : Name(name), Num(num) {}
+  Element() : Element("_", -1) {}
 };
 
 
@@ -35,24 +36,50 @@ public:
  * 0 0 0 (T T T)       positions of the atoms           - read_atom_positions()
  */
 
-  POSCAR(const char* file_name);
-  POSCAR(std::istream& is);
-  ~POSCAR();
-  POSCAR(const POSCAR&) = delete;
-  POSCAR& operator=(const POSCAR&) = delete;
 
+
+/*
+ * public apis
+ */
+
+  const string  & getHeader() const;
+  const double  & getScale() const;
+  const Mat33d  & getLatticVector() const;
+  const VecElem & getElementVector() const;
+  const bool    & getIsSelectiveDynamics() const;
+  const MatX3b  & getSelectiveDynamicsMatrix() const;
+  const bool    & getIsCartesian() const;
+  const MatX3d  & getAtomPositions() const;
+  const MatX3d  & getCartesianPositions() const;
+  const MatX3d  & getDirectPositions() const;
+        int       getNAtoms() const;
+        void      convertToCartesian();
+        void      convertToDirect();
+
+  void saveAsDuplicate(const char* file_name,
+                       const bool  is_cartesian) const;
+
+
+
+  POSCAR             (const char* file_name);
+  POSCAR             (std::istream& is);
+  ~POSCAR            ();
+  POSCAR             (const POSCAR&) = delete;
+  POSCAR& operator = (const POSCAR&) = delete;
 
 private:
-  void read_header             (const string  str);
-  void read_scale              (const string  str);
-  void read_lattice_vectors    (const VecStr& str_vec);
-  bool read_element_vector     (const VecStr& str_vec);
-  bool read_selective_dynamics (const string  str);
-  bool read_cartesian          (const string  str);
-  void read_atom_positions     (const VecStr& str_vec);
+  string read_header             (const string  str);
+  double read_scale              (const string  str);
+  Mat33d read_lattice_vectors    (const VecStr& str_vec);
+  bool   read_element_vector     (const VecStr& str_vec);
+  bool   read_selective_dynamics (const string  str);
+  bool   read_cartesian          (const string  str);
+  MatX3d read_atom_positions     (const VecStr& str_vec);
 
-  void init                    (std::istream& is);
-  void read_all                (const VecStr& str_vec);
+  void init                      (std::istream& is);
+  void read_all                  (const VecStr& str_vec);
+  MatX3d convert_coordinate      (const bool    is_to_cart);
+  VecStr mark_atom_with_elem     ();
 
 private:
 // raw data
@@ -60,6 +87,7 @@ private:
   VecStr  _contentVector;
 
 // parsed data
+  string  _filename;
   string  _header;
   double  _scale;
   Mat33d  _latticeCartVecs;        // in Cartesian coordinates
@@ -73,7 +101,10 @@ private:
 // processed data
 private:
   int     _nAtoms;
- 
+  Mat33d  _recipLattVecs;
+  MatX3d  _atomCartesianPositions;
+  MatX3d  _atomDirectPositions;
+  VecStr  _elementOfEachAtom;
 
 };
 
