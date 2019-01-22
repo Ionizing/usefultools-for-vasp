@@ -3,6 +3,7 @@ CFLAGS := -std=c++11 -g -Wall -Wextra -fno-omit-frame-pointer -fsanitize=address
 LFLAGS := 
 INCLUDE := -I./include
 
+INCS := $(wildcard ./include/*.hpp)
 SOURCE := $(wildcard ./src/*.cc)
 OBJS := $(patsubst %.cc, %.o, $(SOURCE))
 TEST_SRC := $(wildcard ./unit_test/*.cc)
@@ -14,10 +15,10 @@ TEST_EXE := $(patsubst %.cc, %.out, $(TEST_SRC))
 
 all: $(TEST_EXE)
 
-./src/%.o: ./src/%.cc
+./src/%.o: ./src/%.cc $(INCS)
 	$(CC) -o $@ -c $< $(INCLUDE) $(CFLAGS)
 
-./unit_test/%.out: ./unit_test/%.cc $(OBJS)
+./unit_test/%.out: ./unit_test/%.cc $(OBJS) $(INCS)
 	$(CC) -o $@ $< $(OBJS) $(INCLUDE) $(CFLAGS) $(LFLAGS)
 
 clean:

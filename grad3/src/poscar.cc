@@ -100,6 +100,13 @@ namespace ionizing {
     }
 
     _recipLattVecs = _latticeCartVecs.inverse();
+    /*
+     * {
+     *   std::cout << "DEBUG: " << __FILE__ << __LINE__ << ": \n"
+     *     << "_recipLattVecs = \n" << _recipLattVecs.format(HeavyFmt)
+     *     << std::endl;
+     * }
+     */
     return _latticeCartVecs;
   }
 
@@ -165,7 +172,7 @@ namespace ionizing {
     _elemVector.resize(cnt_elem_atom);
     _nAtoms = 0;
     for (int i=0; i!=cnt_elem_atom; ++i) {
-      _elemVector(i).Name = (-1 == cnt_elem_type) ? "_" : elem_types[i];
+      _elemVector(i).Name = (-1 == cnt_elem_type) ? "" : elem_types[i];
       _elemVector(i).Num = atom_nums[i];
       _nAtoms += atom_nums[i];
     }
@@ -231,6 +238,13 @@ namespace ionizing {
                       break;
           }
         }
+
+        {
+          std::cout << std::boolalpha 
+            << "DEBUG: " << __FILE__ << __LINE__ << ": \n"
+            << "_isSelectiveDynamics = \n" <<
+            _isSelectiveDynamics << std::endl << std::noboolalpha;
+        }
       } // end if (_isSelectiveDynamics)
 
       // Read comments for each atom
@@ -259,10 +273,12 @@ namespace ionizing {
  *                    | Cx, Cy, Cz |   
  */
 
-    if (_isCartesian) {
-      _atomDirectPositions = (_atomPositions * _latticeCartVecs);
-    } else {
-      _atomCartesianPositions = (_atomPositions * _recipLattVecs);
+    if (_isCartesian) { // convert to direcit
+      _atomDirectPositions = (_atomPositions * _recipLattVecs);
+      _atomCartesianPositions = _atomPositions;
+    } else {            // convert to cartesian
+      _atomCartesianPositions = (_atomPositions * _latticeCartVecs);
+      _atomDirectPositions = _atomPositions;
     }
     return _atomPositions;
   } // end of read_atom_positions
@@ -403,7 +419,7 @@ namespace ionizing {
         _atomCartesianPositions : _atomDirectPositions;
     
     for (int i=0; i!=_nAtoms; ++i) {
-      ss << atom_position.row(i);
+      ss << atom_position.row(i).format(PosMatFormat);
       if (_isSelectiveDynamics) {
         for (int j=0; j!=3; ++j) {
           ss << setw(3) << (_atomSelectiveDynamics(i) == true ? "T" : "F");
@@ -414,6 +430,12 @@ namespace ionizing {
     }
     std::ofstream ofs(fname.c_str());
     ofs << ss.str();
+    /*
+     * {
+     *   std::cout << "DEBUG: " << __FILE__ << __LINE__ << ": atom pos = \n"
+     *     << _atomCartesianPositions.format(HeavyFmt) << std::endl;
+     * }
+     */
     std::cout << "\nInfo: POSCAR saved to '" << fname << "'.\n";
   }
 

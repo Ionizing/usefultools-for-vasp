@@ -13,7 +13,7 @@ struct Element {
   string Name;
   int    Num;
   Element(const char* name, const int num) : Name(name), Num(num) {}
-  Element() : Element("_", -1) {}
+  Element() : Element("", -1) {}
 };
 
 
@@ -22,6 +22,7 @@ public:
   using MatX3b  = Matrix<bool, Dynamic, 3>;
   using VecStr  = VecT<string>;
   using VecElem = VecT<Element>;
+
 
 /*
  * fcc: Ni Header      (comment)                        - read_header()                      
