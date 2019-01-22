@@ -15,6 +15,7 @@ namespace ionizing {
     while (! buffer.eof()) {
       string line;
       std::getline(buffer, line);
+      trim(line);
       str_vec.emplace_back(line);
     }
 
@@ -45,7 +46,7 @@ namespace ionizing {
 
     read_cartesian(str_vec(n_current_line++));
     read_atom_positions(str_vec.segment(n_current_line, _nAtoms));
-    
+    mark_atom_with_elem();   
   }
 
 
@@ -66,9 +67,11 @@ namespace ionizing {
   }
 
   string POSCAR::read_header(const string str) {
-    {
-      std::cout << "\nDEBUG: " << __FILE__ << __FUNCTION__ << " str = :\n" << str << std::endl;
-    }
+    /*
+     * {
+     *   std::cout << "\nDEBUG: " << __FILE__ << __FUNCTION__ << " str = :\n" << str << std::endl;
+     * }
+     */
     _header = str;
     return str;
   }
@@ -153,6 +156,14 @@ namespace ionizing {
       std::cerr << "\nERROR: Empty line for element tags.\n" << std::endl;
       std::abort();
     }
+
+    /*
+     * { // DEBUG
+     *   std::cout << "DEBUG: " << __FILE__ << __LINE__ << ": \n"
+     *     << "ss_type.str() = " << ss_type.str() << "\n"
+     *     << "ss_num.str() = " << ss_num.str() << std::endl;
+     * }
+     */
     
     std::vector<int> atom_nums;
     while (! ss_num.eof()) {
@@ -167,6 +178,13 @@ namespace ionizing {
 
     if (-1 != cnt_elem_type and (cnt_elem_type != cnt_elem_atom)) {
       std::cerr << "ERROR: Inconsistent element type list size and atom number list size.\n" << std::endl;
+          /*
+           * { // DEBUG
+           *   std::cout << "DEBUG: " << __FILE__ << __LINE__ << ": \n"
+           *     << "cnt_elem_atom = " << cnt_elem_atom << "\n"
+           *     << "cnt_elem_type = " << cnt_elem_type << std::endl;
+           * }
+           */
     }
 
     _elemVector.resize(cnt_elem_atom);
@@ -238,19 +256,13 @@ namespace ionizing {
                       break;
           }
         }
-
-        {
-          std::cout << std::boolalpha 
-            << "DEBUG: " << __FILE__ << __LINE__ << ": \n"
-            << "_isSelectiveDynamics = \n" <<
-            _isSelectiveDynamics << std::endl << std::noboolalpha;
-        }
       } // end if (_isSelectiveDynamics)
 
       // Read comments for each atom
       {
         std::string tmp;
-        ss >> tmp;
+        std::getline(ss, tmp);
+        trim(tmp);
         if ('!' != tmp[0] and 0 != tmp[0]) {
           std::cerr << "\nERROR: Invalid comment prefix: " << tmp[0] << " \n" << std::endl;
           std::abort();
@@ -258,6 +270,15 @@ namespace ionizing {
         _atomComments(i) = std::move(tmp);
       }
     } // end for
+
+    /*
+     * {
+     *   std::cout << std::boolalpha 
+     *     << "DEBUG: " << __FILE__ << __LINE__ << ": \n"
+     *     << "_atomSelectiveDynamics = \n" <<
+     *     _atomSelectiveDynamics.format(PosMatFormat) << std::endl << std::noboolalpha;
+     * }
+     */
 
 /*
  * Fractional coordinate --> Cartesian Coordinate
@@ -280,6 +301,8 @@ namespace ionizing {
       _atomCartesianPositions = (_atomPositions * _latticeCartVecs);
       _atomDirectPositions = _atomPositions;
     }
+
+    sync_atompos_to_elem();
     return _atomPositions;
   } // end of read_atom_positions
 
@@ -322,6 +345,24 @@ namespace ionizing {
     }
 
     return _elementOfEachAtom;
+  }
+
+  void POSCAR::sync_atompos_to_elem() {
+  /*
+   * New feature: copy atom positions to each element struct respectively.
+   */
+    int cnt = 0;
+    for (Element& elem : _elemVector) {
+      elem.atomPos     = _atomPositions         .block(cnt, 0, elem.Num, 3);
+      elem.atomPosCart = _atomCartesianPositions.block(cnt, 0, elem.Num, 3);
+      elem.atomPosDire = _atomDirectPositions   .block(cnt, 0, elem.Num, 3);
+      elem.comments    = _atomComments          .segment(cnt, elem.Num);
+      cnt += elem.Num;
+    }
+  }
+
+  void POSCAR::sync_elem_to_atompos() {
+    
   }
 
 /*
@@ -385,7 +426,9 @@ namespace ionizing {
   void POSCAR::saveAsDuplicate(const char* file_name,
                                const bool  is_cartesian) const {
     using std::setw;
+    char line[256];
     string fname;
+
     if (std::strlen(file_name) == 0) {
       fname = string{_filename} + "_saved.vasp";
     } else {
@@ -394,18 +437,35 @@ namespace ionizing {
 
     std::stringstream ss;
     ss << _header << "\n"
-       << _scale  << "\n"
-       << _latticeCartVecs << "\n";
+       << "  " << _scale  << "\n";
+
+/*
+ * output lattice vectors using sprintf to format layout.
+ * stream operator `<<` is a bullshit
+ */
+    for (int i=0; i!=3; ++i) {
+      sprintf(line, "  %12.7f  %12.7f  %12.7f", 
+          _latticeCartVecs(i, 0), _latticeCartVecs(i, 1), _latticeCartVecs(i, 2));
+      ss << line << "\n";
+    }
+
+/*
+ * output element name and atom numbers
+ */
     if (!_elemVector(0).Name.empty()) {
       for (Element elem : _elemVector) {
-        ss << setw(4) << elem.Name;
+        ss << setw(6) << elem.Name;
       } ss << "\n";
     }
 
     for (Element elem : _elemVector) {
-      ss << setw(4) << elem.Num;
+      ss << setw(6) << elem.Num;
     } ss << "\n";
 
+
+/*
+ * output if selective dynamics
+ */
     if (_isSelectiveDynamics) {
       ss << "Selective Dynamics\n";
     }
@@ -415,18 +475,23 @@ namespace ionizing {
     } else {
       ss << "Direct\n";
     }
+
     MatX3d atom_position = (is_cartesian) ? 
         _atomCartesianPositions : _atomDirectPositions;
     
     for (int i=0; i!=_nAtoms; ++i) {
-      ss << atom_position.row(i).format(PosMatFormat);
+      // ss << atom_position.row(i).format(PosMatFormat);
+      sprintf(line, "  %12.7f  %12.7f  %12.7f",
+          atom_position(i, 0), atom_position(i, 1), atom_position(i, 2));
+      ss << line;
+
       if (_isSelectiveDynamics) {
         for (int j=0; j!=3; ++j) {
-          ss << setw(3) << (_atomSelectiveDynamics(i) == true ? "T" : "F");
+          ss << setw(3) << (_atomSelectiveDynamics(i, j) == true ? "T" : "F");
         }
       }
 
-      ss << "  " << _atomComments(i) << "\n";
+      ss << "  ! " << _elementOfEachAtom(i) << " " << _atomComments(i) << "\n";
     }
     std::ofstream ofs(fname.c_str());
     ofs << ss.str();
@@ -438,15 +503,6 @@ namespace ionizing {
      */
     std::cout << "\nInfo: POSCAR saved to '" << fname << "'.\n";
   }
-
-
-
-
-
-
-
-
-
 
 
 

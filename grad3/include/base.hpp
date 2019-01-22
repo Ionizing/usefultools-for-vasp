@@ -77,8 +77,8 @@ namespace ionizing {
   static IOFormat CommaInitFmt{StreamPrecision, DontAlignCols, ", ", ", ", "", "", " << ", ";"};
   static IOFormat CleanFmt{4, 0, ", ", "\n", "[", "]"};
   static IOFormat OctaveFmt{StreamPrecision, 0, ", ", ";\n", "", "", "[", "]"};
-  static IOFormat HeavyFmt{FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]"};
-  static IOFormat PosMatFormat{FullPrecision, 0, "  ", "\n", "   "};
+  static IOFormat HeavyFmt{FullPrecision    , 0, ", ", ";\n", "[", "]", "[", "]"};
+  static IOFormat PosMatFormat{ 10, 0, "  ", "\n", "   "};
 
 
 // test if is RowMajor

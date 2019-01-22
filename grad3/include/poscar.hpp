@@ -10,8 +10,13 @@
 namespace ionizing {
 
 struct Element {
+  using VecStr = VecT<string>;
   string Name;
   int    Num;
+  MatX3d atomPos;
+  MatX3d atomPosCart;
+  MatX3d atomPosDire;
+  VecStr comments;
   Element(const char* name, const int num) : Name(name), Num(num) {}
   Element() : Element("", -1) {}
 };
@@ -81,6 +86,8 @@ private:
   void read_all                  (const VecStr& str_vec);
   MatX3d convert_coordinate      (const bool    is_to_cart);
   VecStr mark_atom_with_elem     ();
+  void   sync_atompos_to_elem    ();
+  void   sync_elem_to_atompos    ();
 
 private:
 // raw data
@@ -108,6 +115,20 @@ private:
   VecStr  _elementOfEachAtom;
 
 };
-
+/*
+ *
+ * Note: I came up with an idea that define element struct:
+ * struct Element {
+ *    string Name;
+ *    int    Num;
+ *    MatX3d atomPos;
+ *    MatX3d atomPosCart;
+ *    MatX3d atomPosReci;
+ *    VecStr comments;
+ * }
+ *
+ * It may be convenient to insert atoms, supercell and etc = =
+ * 
+ */
 }
 #endif
