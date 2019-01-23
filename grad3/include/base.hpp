@@ -10,6 +10,10 @@
 #ifndef BASE_H
 #define BASE_H
 
+#if __cplusplus < 201103L
+  #error "Deprecated compiler, use gcc4.9 or higher"
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <complex>
