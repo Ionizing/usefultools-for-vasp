@@ -59,7 +59,7 @@ namespace ionizing {
   using Cubcd  = Tensor<std::complex<double>,                3, RowMajor>;
   using Mat33d = Matrix<double,                     3,       3>;
   using MatX3d = Matrix<double,               Dynamic,       3>;
-  using MatX3b  = Matrix<bool, Dynamic, 3>;
+  using MatX3b = Matrix<bool,                 Dynamic,       3>;
 
   template <typename T>
     using MatT    = Matrix<T, Dynamic, Dynamic>;
@@ -75,7 +75,7 @@ namespace ionizing {
 
 // genenral string aliases
   using std::string;
-
+  using VecStr = VecT<string>;
   
 // global format layout format
   static IOFormat CommaInitFmt{StreamPrecision, DontAlignCols, ", ", ", ", "", "", " << ", ";"};

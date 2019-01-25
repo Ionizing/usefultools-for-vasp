@@ -4,6 +4,24 @@
   "arguments": [
    "c++", 
    "-o", 
+   "src/outcar.o", 
+   "-c", 
+   "src/outcar.cc", 
+   "-I./include", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "src/outcar.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
    "src/error.o", 
    "-c", 
    "src/error.cc", 
@@ -11,7 +29,9 @@
    "-std=c++11", 
    "-g", 
    "-Wall", 
-   "-Wextra"
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
   ], 
   "file": "src/error.cc"
  }, 
@@ -27,7 +47,9 @@
    "-std=c++11", 
    "-g", 
    "-Wall", 
-   "-Wextra"
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
   ], 
   "file": "src/textio.cc"
  }, 
@@ -43,7 +65,9 @@
    "-std=c++11", 
    "-g", 
    "-Wall", 
-   "-Wextra"
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
   ], 
   "file": "src/stringops.cc"
  }, 
@@ -52,16 +76,22 @@
   "arguments": [
    "c++", 
    "-o", 
-   "src/outcar.o", 
-   "-c", 
-   "src/outcar.cc", 
+   "unit_test/test_poscar.out", 
+   "unit_test/test_poscar.cc", 
+   "./src/error.o", 
+   "./src/outcar.o", 
+   "./src/poscar.o", 
+   "./src/stringops.o", 
+   "./src/textio.o", 
    "-I./include", 
    "-std=c++11", 
    "-g", 
    "-Wall", 
-   "-Wextra"
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
   ], 
-  "file": "src/outcar.cc"
+  "file": "unit_test/test_poscar.cc"
  }, 
  {
   "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
@@ -75,7 +105,9 @@
    "-std=c++11", 
    "-g", 
    "-Wall", 
-   "-Wextra"
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
   ], 
   "file": "src/poscar.cc"
  }

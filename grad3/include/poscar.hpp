@@ -2,33 +2,15 @@
 #ifndef POSCAR_H
 #define POSCAR_H
 
-// #include <base.hpp>
-#include "base.hpp"
-#include "textio.hpp"
-#include "stringops.hpp"
+#include <base.hpp>
+#include <stringops.hpp>
+#include <element.hpp>
 
 namespace ionizing {
 
-struct Element {
-  using VecStr = VecT<string>;
-  string Name;
-  int    Num;
-  MatX3d atomPos;
-  MatX3d atomPosCart;
-  MatX3d atomPosDire;
-  VecStr comments;
-  Element(const char* name, const int num) : Name(name), Num(num) {}
-  Element() : Element("", -1) {}
-};
-
-
 class POSCAR {
 public:
-  using MatX3b  = Matrix<bool, Dynamic, 3>;
-  using VecStr  = VecT<string>;
   using VecElem = VecT<Element>;
-
-
 /*
  * fcc: Ni Header      (comment)                        - read_header()                      
  * 3.53                Overall scaling constant         - read_scale()
