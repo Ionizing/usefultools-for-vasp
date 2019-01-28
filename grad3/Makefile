@@ -1,7 +1,7 @@
 CC := c++
 CFLAGS := -std=c++11 -g -Wall -Wextra -fno-omit-frame-pointer -fsanitize=address
 LFLAGS := 
-INCLUDE := -I./include
+INCLUDE := -I./include -I./third_party
 
 INCS := $(wildcard ./include/*.hpp)
 SOURCE := $(wildcard ./src/*.cc)

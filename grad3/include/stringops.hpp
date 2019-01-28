@@ -3,14 +3,30 @@
 #define STRINGOPS_H
 
 #include <base.hpp>
+#include <cstdarg>
 
 namespace ionizing {
-  void ltrim(std::string &s);
-  void rtrim(std::string &s);
-  void trim(std::string &s);
-  std::string ltrim_copy(std::string s);
-  std::string rtrim_copy(std::string s);
-  std::string trim_copy(std::string s);
+  void    ltrim     (string&  str);
+  void    rtrim     (string&  str);
+  void    trim      (string&  str);
+  string  ltrim_copy(string   str);
+  string  rtrim_copy(string   str);
+  string  trim_copy (string   str);
+
+  VecStr  split     (string   str);
+  string  join      (VecStr   str_vec);
+
+  void    toupper       (string&  str);
+  void    tolower       (string&  str);
+  string  toupper_copy  (string   str);
+  string  tolower_copy  (string   str);
+
+  bool    start_with    (const string&  src, const string&  val);
+  bool    end_with      (const string&  src, const string&  val);
+
+  bool    is_empty_or_white_space (const string& str);
+
+  string  string_printf (const char* format, ...);
 }
 
 

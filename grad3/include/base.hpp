@@ -75,7 +75,7 @@ namespace ionizing {
 
 // genenral string aliases
   using std::string;
-  using VecStr = VecT<string>;
+  using VecStr = std::vector<string>;
   
 // global format layout format
   static IOFormat CommaInitFmt{StreamPrecision, DontAlignCols, ", ", ", ", "", "", " << ", ";"};

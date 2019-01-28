@@ -1,4 +1,4 @@
-#include "../include/poscar.hpp"
+#include <poscar.hpp>
 
 namespace ionizing {
 
@@ -21,7 +21,7 @@ namespace ionizing {
 
     _contentVector.resize(str_vec.size());
     for (size_t i=0; i!=str_vec.size(); ++i) {
-      _contentVector(i) = std::move(str_vec[i]);
+      _contentVector[i] = std::move(str_vec[i]);
     }
 
     read_all(_contentVector);
@@ -29,23 +29,29 @@ namespace ionizing {
 
   void POSCAR::read_all(const VecStr& str_vec) {
     int n_current_line = 0;
-    read_header(str_vec(n_current_line++));
-    read_scale(str_vec(n_current_line++));
-    read_lattice_vectors(str_vec.segment<3>(n_current_line));
+    read_header(str_vec[n_current_line++]);
+    read_scale(str_vec[n_current_line++]);
+    // read_lattice_vectors(str_vec.segment<3>(n_current_line));
+    read_lattice_vectors(VecStr(str_vec.begin() + n_current_line, 
+                                str_vec.begin() + n_current_line + 3));
     n_current_line += 3;
 
-    if (read_element_vector(str_vec.segment<2>(n_current_line)) ){
+    // if (read_element_vector(str_vec.segment<2>(n_current_line)) ){
+    if (read_element_vector(VecStr(str_vec.begin() + n_current_line,
+                                   str_vec.begin() + n_current_line + 2))) {
       n_current_line += 2;
     } else {
       n_current_line += 1;
     }
 
-    if (read_selective_dynamics(str_vec(n_current_line))) {
+    if (read_selective_dynamics(str_vec[n_current_line])) {
       ++n_current_line;
     }
 
-    read_cartesian(str_vec(n_current_line++));
-    read_atom_positions(str_vec.segment(n_current_line, _nAtoms));
+    read_cartesian(str_vec[n_current_line++]);
+    // read_atom_positions(str_vec.segment(n_current_line, _nAtoms));
+    read_atom_positions(VecStr(str_vec.begin() + n_current_line,
+                               str_vec.begin() + n_current_line + _nAtoms));
     mark_atom_with_elem();   
   }
 
@@ -88,16 +94,16 @@ namespace ionizing {
   }
 
   Mat33d POSCAR::read_lattice_vectors(const VecStr& str_vec) {
-    if (str_vec.rows() < 3) {
+    if (str_vec.size() < 3) {
       std::cerr << "\nERROR: Not enough string lines provied for '" << __FUNCTION__ << "'.\n" << std::endl;
       std::abort();
     }
 
     for (int i=0; i!=3; ++i) {
-      std::stringstream ss(trim_copy(str_vec(i)));
+      std::stringstream ss(trim_copy(str_vec[i]));
       ss >> _latticeCartVecs(i, 0) >> _latticeCartVecs(i, 1) >> _latticeCartVecs(i, 2);
       if (ss.fail()) {
-        std::cerr << "\nERROR: Invalid cell vectors in POSCAR: " << str_vec(i) << ".\n" << std::endl;
+        std::cerr << "\nERROR: Invalid cell vectors in POSCAR: " << str_vec[i] << ".\n" << std::endl;
         std::abort();
       }
     }
@@ -114,7 +120,7 @@ namespace ionizing {
   }
 
   bool POSCAR::read_element_vector (const VecStr& str_vec) {
-    if (str_vec.rows() < 2) {
+    if (str_vec.size() < 2) {
       std::cerr << "\nERROR: Not enough string lines provided for '" << __FUNCTION__ << "'.\n" << std::endl;
       std::abort();
     }
@@ -124,8 +130,8 @@ namespace ionizing {
  *  Ni Mo S         <-- ss_type
  *  3  1  1         <-- ss_num
  */
-    std::stringstream ss_type(str_vec(0));  // Elements type tag
-    std::stringstream ss_num (str_vec(1));  // number of elements
+    std::stringstream ss_type(str_vec[0]);  // Elements type tag
+    std::stringstream ss_num (str_vec[1]);  // number of elements
 
 /*
  *  cnt_elem_type = -1 : no type tags;
@@ -143,7 +149,7 @@ namespace ionizing {
       if (std::isdigit(tmp_str[0])) {
         std::cout << "\nWarning: No element type tags in POSCAR." << std::endl;
         ss_num.clear();
-        ss_num.str(str_vec(0));
+        ss_num.str(str_vec[0]);
         cnt_elem_type = -1;
         break;
       }
@@ -235,7 +241,7 @@ namespace ionizing {
     _atomSelectiveDynamics.resize(_nAtoms, 3);
 
     for (int i=0; i!=_nAtoms; ++i) {
-      std::stringstream ss(str_vec(i));
+      std::stringstream ss(str_vec[i]);
 
       // Read positions
       for (int j=0; j!=3; ++j) {
@@ -267,7 +273,7 @@ namespace ionizing {
           std::cerr << "\nERROR: Invalid comment prefix: " << tmp[0] << " \n" << std::endl;
           std::abort();
         }
-        _atomComments(i) = std::move(tmp);
+        _atomComments[i] = std::move(tmp);
       }
     } // end for
 
@@ -335,12 +341,12 @@ namespace ionizing {
     return _atomPositions;
   }
 
-  POSCAR::VecStr POSCAR::mark_atom_with_elem () {
+  VecStr POSCAR::mark_atom_with_elem () {
     _elementOfEachAtom.resize(_nAtoms);
     int cnt{0};
     for (auto elem : _elemVector) {
       for (int i=0; i!=elem.Num; ++i) {
-        _elementOfEachAtom(cnt++) = elem.Name;
+        _elementOfEachAtom[cnt++] = elem.Name;
       }
     }
 
@@ -356,7 +362,9 @@ namespace ionizing {
       elem.atomPos     = _atomPositions         .block(cnt, 0, elem.Num, 3);
       elem.atomPosCart = _atomCartesianPositions.block(cnt, 0, elem.Num, 3);
       elem.atomPosDire = _atomDirectPositions   .block(cnt, 0, elem.Num, 3);
-      elem.comments    = _atomComments          .segment(cnt, elem.Num);
+      // elem.comments    = _atomComments          .segment(cnt, elem.Num);
+      elem.comments    = VecStr(_atomComments.begin() + cnt,
+                                _atomComments.begin() + cnt + elem.Num);
       cnt += elem.Num;
     }
   }
@@ -391,7 +399,7 @@ namespace ionizing {
     return _isSelectiveDynamics;
   }
 
-  const POSCAR::MatX3b& POSCAR::getSelectiveDynamicsMatrix() const {
+  const MatX3b& POSCAR::getSelectiveDynamicsMatrix() const {
     return _atomSelectiveDynamics;
   }
 
@@ -491,7 +499,7 @@ namespace ionizing {
         }
       }
 
-      ss << "  ! " << _elementOfEachAtom(i) << " " << _atomComments(i) << "\n";
+      ss << "  ! " << _elementOfEachAtom[i] << " " << _atomComments[i] << "\n";
     }
     std::ofstream ofs(fname.c_str());
     ofs << ss.str();
