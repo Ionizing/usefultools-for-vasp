@@ -4,6 +4,7 @@
 
 #include <base.hpp>
 #include <cstdarg>
+#include <functional>
 
 namespace ionizing {
   void    ltrim     (string&  str);
@@ -13,20 +14,21 @@ namespace ionizing {
   string  rtrim_copy(string   str);
   string  trim_copy (string   str);
 
-  VecStr  split     (string   str);
-  string  join      (VecStr   str_vec);
+  VecStr  split     (string   str,      const char delim = '\0');
+  string  join      (VecStr   str_vec,  const char delim = ' ');
 
   void    toupper       (string&  str);
   void    tolower       (string&  str);
   string  toupper_copy  (string   str);
   string  tolower_copy  (string   str);
 
-  bool    start_with    (const string&  src, const string&  val);
-  bool    end_with      (const string&  src, const string&  val);
+  bool    is_start_with (const string&  src, const string&  val);
+  bool    is_end_with   (const string&  src, const string&  val);
 
   bool    is_empty_or_white_space (const string& str);
 
   string  string_printf (const char* format, ...);
+  void   _string_printf (string& dst, const char* fmt, va_list va);
 }
 
 
