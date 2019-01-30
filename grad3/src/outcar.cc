@@ -3,6 +3,10 @@
 
 namespace ionizing {
 
+/*
+ * Parse OUTCAR Pseudo Potentials
+ */
+
 
 
 

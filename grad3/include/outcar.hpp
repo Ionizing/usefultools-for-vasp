@@ -4,7 +4,7 @@
 #define OUTCAR_H
 
 #if __cplusplus < 201103L
-  #error "Deprecated compiler, use gcc4.9 or higher"
+  #error "DEPRECATED COMPILER, USE GCC4.9 OR HIGHER"
 #endif
 
 #include <base.hpp>
@@ -12,6 +12,9 @@
 
 namespace ionizing{ 
 
+#ifdef UNIT_TEST
+#define private public  // Just for unit_test
+#endif
 
 class OUTCAR {
 public:
@@ -22,14 +25,18 @@ public:
   OUTCAR(const char* file_name);
   ~OUTCAR();
 
+  VecStr parsePPs();
+
 public:
 // POSCAR info without selective dynamics
-  struct POSCAR {
+  struct mini_POSCAR {
     using VecElem = VecT<Element>;
 
     string Header;
     Mat33d LatticeVectors;    
     VecElem ElementVector;
+
+    void print_to_file();
   };
 
 private:

@@ -9,19 +9,22 @@ namespace ionizing {
 struct Element {
   string Name;
   int    Num;
+  Mat33d Acell;
+  Mat33d Bcell;
   bool   isCart;
+  bool   isInited;
+
+
   MatX3d atomPos;
   MatX3d atomPosCart;
   MatX3d atomPosDire;
   VecStr comments;
 
-  Element(const char* name, const int num) : Name(name), Num(num) {}
-  Element() : Element("", 0) {}
-  void init_with_cart(const int     atom_num,
-                      const MatX3d  atom_pos_cart,
+  Element(const char* name, const int num, const Mat33d acell);
+  Element();
+  bool init_with_cart(const MatX3d  atom_pos_cart,
                       const VecStr  comments);
-  void init_with_dire(const int     atom_num, 
-                      const Mat33d  atom_pos_dire,
+  bool init_with_dire(const MatX3d  atom_pos_dire,
                       const VecStr  comments);
 };
 
