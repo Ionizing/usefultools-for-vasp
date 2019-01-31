@@ -107,3 +107,20 @@ TEST_CASE("String Printf") {
     REQUIRE(str == string_printf("%s", str));
   }
 }
+
+TEST_CASE("Count occurrences of substr") {
+  using ionizing::string;
+  using ionizing::count_substr;
+
+  string src  {"substring sub sub   subsubsub su b u sub"};
+  string short_s  {"sub"},
+         long_s   {"substring"},
+         spaces   {"   "},
+         no_exist {"asbcd"},
+         empty_s  {""};
+  REQUIRE(count_substr(src, short_s) == 7);
+  REQUIRE(count_substr(src, long_s) == 1);
+  REQUIRE(count_substr(src, spaces) == 1);
+  REQUIRE(count_substr(src, no_exist) == 0);
+  REQUIRE_THROWS(count_substr(src, empty_s));
+}

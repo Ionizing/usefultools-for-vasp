@@ -29,6 +29,8 @@ namespace ionizing {
 
   string  string_printf (const char* format, ...);
   void   _string_printf (string& dst, const char* fmt, va_list va);
+
+  int     count_substr(const string& src, const string& val);
 }
 
 

@@ -143,4 +143,19 @@ namespace ionizing {
     }
     dst.append(buffer.get(), result);
   }
+
+  int count_substr(const string& src, const string& val) {
+    if ("" == val) {
+      throw "Finding an empty substring occurrences.";
+      return -1;
+    }
+    int cnt = 0;
+    size_t pos = 0;
+    while ((pos = src.find(val, pos)) != string::npos) {
+      ++cnt;
+      ++pos;
+    }
+
+    return cnt;
+  }
 }

@@ -9,8 +9,11 @@
 
 #include <base.hpp>
 #include <poscar.hpp>
+#include <stringops.hpp>
 
 namespace ionizing{ 
+
+#define UNIT_TEST
 
 #ifdef UNIT_TEST
 #define private public  // Just for unit_test
@@ -18,14 +21,24 @@ namespace ionizing{
 
 class OUTCAR {
 public:
-  using VecStr = VecT<string>;
+  /*
+   * OUTCAR(std::istream& is);
+   * OUTCAR(const char* file_name);
+   * ~OUTCAR();
+   */
+
 
 public:
-  OUTCAR(std::istream& is);
-  OUTCAR(const char* file_name);
-  ~OUTCAR();
+  VecStr parseElems(const VecStr& lines, const string& content);
 
-  VecStr parsePPs();
+private:
+  VecStr parse_elems(const VecStr& lines) const;
+  const string& file_to_string(std::istream& is);
+  const VecStr& string_to_vecstr(const string& content);
+
+private: // debug use only
+  VecStr test_parse_elem(std::istream& is);
+
 
 public:
 // POSCAR info without selective dynamics
@@ -46,6 +59,7 @@ private:
 
 // parsed data
   string _filename;
+  VecStr _Elems;
   
 // INCAR involved parameters
   int _EDIFF;
