@@ -28,16 +28,27 @@ public:
    */
 
 
+/*
+ * Parse type of Pseudo Potentials
+ */
 public:
   VecStr parseElems(const VecStr& lines, const string& content);
 
 private:
-  VecStr parse_elems(const VecStr& lines) const;
+  VecStr parse_elems(const VecStr& lines);
   const string& file_to_string(std::istream& is);
   const VecStr& string_to_vecstr(const string& content);
 
-private: // debug use only
   VecStr test_parse_elem(std::istream& is);
+
+/*
+ * Parse Lattice Vectors
+ */
+public:
+  Mat33d parseLatticeVectors(const VecStr& lines);
+
+private:
+  Mat33d parse_lattice_vectors(const VecStr& lines);
 
 
 public:

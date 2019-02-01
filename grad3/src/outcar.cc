@@ -2,6 +2,10 @@
 
 namespace ionizing {
 
+
+/*
+ * TEST func
+ */
   VecStr OUTCAR::test_parse_elem(std::istream& is) {
     file_to_string(is);
     string_to_vecstr(_content);
@@ -63,16 +67,21 @@ namespace ionizing {
  *  "H"
  *  ---------
  */
-  VecStr OUTCAR::parse_elems(const VecStr& lines) const {
+  VecStr OUTCAR::parse_elems(const VecStr& lines) {
     VecStr out;
     for (string e : lines) {
       if (!is_start_with(e, "   VRHFIN =")) {
         throw "String doesn't contain element name"; 
       }
-      string token = split(e)[1];
-      token.pop_back();
-      token.erase(0, 1); // erase 1 element from index 0
-      out.emplace_back(std::move(token));
+      e.erase(0, 11);
+      e.erase(e.find_first_of(':'), string::npos);
+      out.emplace_back(std::move(e));
+      /*
+       * string token = split(e)[1];
+       * token.pop_back();
+       * token.erase(0, 1); // erase 1 element from index 0
+       * out.emplace_back(std::move(token));
+       */
     }
     return out;
   }
@@ -102,7 +111,35 @@ namespace ionizing {
     return parse_elems(lines_to_use);
   }
   
+/*
+ * Mat33d parseLatticeVectors(VecStr& lines)
+ *  in: OUTCAR content VecStr
+ * out: Lattice Vectors in real space
+ */
+  /*
+   * Mat33d parseLatticeVectors(const VecStr& lines) {
+   *   Mat33d Acell;
+   * }
+   */
 
+  Mat33d OUTCAR::parse_lattice_vectors(const VecStr& lines) {
+    Mat33d out;
+    if (lines.size() != 3) {
+      throw string_printf("Invalid string vector size: %lld.", lines.size());
+      return out;
+    } else if (std::any_of(lines.begin(), lines.end(), [](const string& str){
+          return !is_start_with(str, " A");
+          })) {
+      throw string_printf("Invalid string input: \n%s\n%s\n%s\n", 
+          lines[0].c_str(), lines[1].c_str(), lines[2].c_str());
+      return out;
+    }
+    
+    for (int i=0; i!=3; ++i) {
+      sscanf(lines[i].c_str(), " A%*c = (%lf,%lf,%lf)", &out(i, 0), &out(i, 1), &out(i, 2));
+    }
 
+    return out;
+  }
 
 }

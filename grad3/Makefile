@@ -20,6 +20,7 @@ all: $(TEST_EXE)
 
 ./unit_test/%.out: ./unit_test/%.cc $(OBJS) $(INCS)
 	$(CC) -o $@ $< $(OBJS) $(INCLUDE) $(CFLAGS) $(LFLAGS)
+	$@
 
 clean:
 	@rm $(OBJS) $(TEST_EXE)

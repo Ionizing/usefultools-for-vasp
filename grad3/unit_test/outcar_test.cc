@@ -40,7 +40,7 @@ TEST_CASE("parse_elems test") {
 }
 
 TEST_CASE("Read OUTCAR to one string and VecStr") {
-  std::ifstream ifs("./test1/OUTCAR");
+  std::ifstream ifs("./unit_test/test1/OUTCAR");
   string content = outcar.file_to_string(ifs);
 
   WHEN("into one string") {
@@ -60,9 +60,24 @@ TEST_CASE("Read OUTCAR to one string and VecStr") {
   }
 
   WHEN("from raw file") {
-    std::ifstream ifs2("./test3/OUTCAR");
+    std::ifstream ifs2("./unit_test/test3/OUTCAR");
     VecStr elem_name { "Cu", "C", "H" };
 
     REQUIRE(outcar.test_parse_elem(ifs2) == elem_name);
   }
+}
+
+TEST_CASE("Parse Lattice Vector") {
+  VecStr raw_lines {
+    " A1 = (   9.0750000000,  -9.0750000000,   0.0000000000)",
+    " A2 = (   9.0750000000,   9.0750000000,   0.0000000000)",
+    " A3 = (   0.0000000000,   0.0000000000,  29.0400000000)"
+  };
+  
+  Mat33d result;
+  result << 9.0750000000,  -9.0750000000,   0.0000000000,
+            9.0750000000,   9.0750000000,   0.0000000000,
+            0.0000000000,   0.0000000000,  29.0400000000;
+
+  REQUIRE(outcar.parse_lattice_vectors(raw_lines) == result);
 }
