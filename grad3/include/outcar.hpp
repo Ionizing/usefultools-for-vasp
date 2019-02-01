@@ -31,8 +31,12 @@ public:
 /*
  * Parse type of Pseudo Potentials
  */
+
 public:
-  VecStr parseElems(const VecStr& lines, const string& content);
+  VecStr parseElems(const VecStr& lines, 
+                    const string& content,
+                    const int     startline = 0,
+                          int     endline = -1);
 
 private:
   VecStr parse_elems(const VecStr& lines);
@@ -45,7 +49,9 @@ private:
  * Parse Lattice Vectors
  */
 public:
-  Mat33d parseLatticeVectors(const VecStr& lines);
+  Mat33d parseLatticeVectors(const VecStr& lines, 
+                             const int     startline = 0, 
+                                   int     endline = -1);
 
 private:
   Mat33d parse_lattice_vectors(const VecStr& lines);

@@ -92,20 +92,23 @@ namespace ionizing {
  *  in: OUTCAR content in VecStr(lines) and one string(content)
  * out: String Vector of element names;
  */
-  VecStr OUTCAR::parseElems(const VecStr& lines, const string& content) {
+  VecStr OUTCAR::parseElems(const VecStr& lines, 
+                            const string& content,
+                            const int     startline,
+                                  int     endline) {
+    endline = (endline < 0) ? lines.size() : endline;
     _nElems = count_substr(content, "   VRHFIN =");
     VecStr lines_to_use;
 
     int cnt = 0;
-    for (const string str : lines) {
-      if (cnt < _nElems and is_start_with(str, "   VRHFIN =")) {
-        lines_to_use.emplace_back(std::move(str));
+    for (int i=startline; i!=endline; ++i) {
+      if (cnt < _nElems and is_start_with(lines[i], "   VRHFIN =")) {
+        lines_to_use.emplace_back(lines[i]);
         ++cnt;
       }
-
       if (cnt == _nElems) {
         break;
-      } else /*     */;
+      } else /**/ ;
     }
 
     return parse_elems(lines_to_use);
@@ -114,14 +117,17 @@ namespace ionizing {
 /*
  * Mat33d parseLatticeVectors(VecStr& lines)
  *  in: OUTCAR content VecStr
+ *  ---------
+ *  " A1 = (   9.0750000000,  -9.0750000000,   0.0000000000)",
+ *  " A2 = (   9.0750000000,   9.0750000000,   0.0000000000)",
+ *  " A3 = (   0.0000000000,   0.0000000000,  29.0400000000)"
+ *  ---------
  * out: Lattice Vectors in real space
+ *  ---------
+ *  [[   9.0750000000,  -9.0750000000,   0.0000000000],
+ *   [   9.0750000000,   9.0750000000,   0.0000000000],
+ *   [   0.0000000000,   0.0000000000,  29.0400000000]]
  */
-  /*
-   * Mat33d parseLatticeVectors(const VecStr& lines) {
-   *   Mat33d Acell;
-   * }
-   */
-
   Mat33d OUTCAR::parse_lattice_vectors(const VecStr& lines) {
     Mat33d out;
     if (lines.size() != 3) {
@@ -141,5 +147,31 @@ namespace ionizing {
 
     return out;
   }
+
+/*
+ * Mat33d parseLatticeVectors(const VecStr& lines, int startline, int endline);
+ *  in: lines -> VecStr of OUTCAR content;
+ *      startline -> start line number for processing
+ *      endline -> endline number + 1 for processing
+ */
+  Mat33d OUTCAR::parseLatticeVectors(const VecStr& lines,
+                                     const int     startline,
+                                           int     endline) {
+    endline = (endline < 0) ? lines.size() : endline;
+    VecStr lines_to_use;
+    for (int i=startline; i!=endline; ++i) {
+      if (is_start_with(lines[i], " A1 = (")) {
+        lines_to_use.push_back(lines[  i  ]);
+        lines_to_use.push_back(lines[i + 1]);
+        lines_to_use.push_back(lines[i + 2]);
+
+        break;
+      }
+    }
+    return parse_lattice_vectors(lines_to_use);
+  }
+
+
+
 
 }

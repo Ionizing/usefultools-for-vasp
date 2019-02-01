@@ -68,16 +68,34 @@ TEST_CASE("Read OUTCAR to one string and VecStr") {
 }
 
 TEST_CASE("Parse Lattice Vector") {
-  VecStr raw_lines {
-    " A1 = (   9.0750000000,  -9.0750000000,   0.0000000000)",
-    " A2 = (   9.0750000000,   9.0750000000,   0.0000000000)",
-    " A3 = (   0.0000000000,   0.0000000000,  29.0400000000)"
-  };
-  
-  Mat33d result;
-  result << 9.0750000000,  -9.0750000000,   0.0000000000,
-            9.0750000000,   9.0750000000,   0.0000000000,
-            0.0000000000,   0.0000000000,  29.0400000000;
+    VecStr raw_lines {
+      " A1 = (   9.0750000000,  -9.0750000000,   0.0000000000)",
+      " A2 = (   9.0750000000,   9.0750000000,   0.0000000000)",
+      " A3 = (   0.0000000000,   0.0000000000,  29.0400000000)"
+    };
+    
+    Mat33d result;
+    result << 9.0750000000,  -9.0750000000,   0.0000000000,
+              9.0750000000,   9.0750000000,   0.0000000000,
+              0.0000000000,   0.0000000000,  29.0400000000;
 
-  REQUIRE(outcar.parse_lattice_vectors(raw_lines) == result);
+  WHEN("private member") {
+    REQUIRE(outcar.parse_lattice_vectors(raw_lines) == result);
+
+    VecStr broken_lines_1 {raw_lines};
+    VecStr broken_lines_2 {raw_lines};
+    broken_lines_1.pop_back();
+    broken_lines_2[2][1] = 'a';
+
+    REQUIRE_THROWS(outcar.parse_lattice_vectors(broken_lines_1));
+    REQUIRE_THROWS(outcar.parse_lattice_vectors(broken_lines_2));
+  }
+
+  WHEN("from raw file") {
+    std::ifstream ifs("./unit_test/test3/OUTCAR");
+    string content = outcar.file_to_string(ifs);
+    VecStr contentVector = outcar.string_to_vecstr(content);
+
+    REQUIRE(outcar.parseLatticeVectors(contentVector) == result);
+  }
 }
