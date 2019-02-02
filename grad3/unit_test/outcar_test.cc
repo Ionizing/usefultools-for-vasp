@@ -99,3 +99,97 @@ TEST_CASE("Parse Lattice Vector") {
     REQUIRE(outcar.parseLatticeVectors(contentVector) == result);
   }
 }
+
+TEST_CASE("Parse KPoints") {
+  string NKPTS_line = "   k-points           NKPTS =     20   k-points in BZ     NKDIM =     20   number of bands    NBANDS=     81";
+  VecStr KPoints_lines {
+       "0.06250000  0.06250000  0.06250000       0.016",
+       "0.18750000  0.06250000  0.06250000       0.047",
+       "0.31250000  0.06250000  0.06250000       0.047",
+       "0.43750000  0.06250000  0.06250000       0.047",
+       "0.18750000  0.18750000  0.06250000       0.047",
+       "0.31250000  0.18750000  0.06250000       0.094",
+       "0.43750000  0.18750000  0.06250000       0.094",
+       "0.31250000  0.31250000  0.06250000       0.047",
+       "0.43750000  0.31250000  0.06250000       0.094",
+       "0.43750000  0.43750000  0.06250000       0.047",
+       "0.18750000  0.18750000  0.18750000       0.016",
+       "0.31250000  0.18750000  0.18750000       0.047",
+       "0.43750000  0.18750000  0.18750000       0.047",
+       "0.31250000  0.31250000  0.18750000       0.047",
+       "0.43750000  0.31250000  0.18750000       0.094",
+       "0.43750000  0.43750000  0.18750000       0.047",
+       "0.31250000  0.31250000  0.31250000       0.016",
+       "0.43750000  0.31250000  0.31250000       0.047",
+       "0.43750000  0.43750000  0.31250000       0.047",
+       "0.43750000  0.43750000  0.43750000       0.016",
+  };
+
+  MatX3d kpoint_result;
+  kpoint_result.resize(20, 3);
+  kpoint_result << 
+         0.06250000, 0.06250000, 0.06250000,
+         0.18750000, 0.06250000, 0.06250000,
+         0.31250000, 0.06250000, 0.06250000,
+         0.43750000, 0.06250000, 0.06250000,
+         0.18750000, 0.18750000, 0.06250000,
+         0.31250000, 0.18750000, 0.06250000,
+         0.43750000, 0.18750000, 0.06250000,
+         0.31250000, 0.31250000, 0.06250000,
+         0.43750000, 0.31250000, 0.06250000,
+         0.43750000, 0.43750000, 0.06250000,
+         0.18750000, 0.18750000, 0.18750000,
+         0.31250000, 0.18750000, 0.18750000,
+         0.43750000, 0.18750000, 0.18750000,
+         0.31250000, 0.31250000, 0.18750000,
+         0.43750000, 0.31250000, 0.18750000,
+         0.43750000, 0.43750000, 0.18750000,
+         0.31250000, 0.31250000, 0.31250000,
+         0.43750000, 0.31250000, 0.31250000,
+         0.43750000, 0.43750000, 0.31250000,
+         0.43750000, 0.43750000, 0.43750000;
+  
+  WHEN("Normal case") {
+    REQUIRE(outcar.parse_nkpts(NKPTS_line) == 20);
+    REQUIRE(outcar._NKPTS == 20);
+    REQUIRE(outcar.parse_kpoints(KPoints_lines) == kpoint_result);
+  }
+
+  WHEN("Negative NKPTS") {
+    const string line = "   k-points           NKPTS =     -8   k-points in BZ     NKDIM =     20   number of bands    NBANDS=     81";
+    REQUIRE_THROWS(outcar.parse_nkpts(line));
+    REQUIRE(-1 == outcar._NKPTS);
+  }
+
+  WHEN("Invalid NKPTS line prefix") {
+    const string line = "  k-points           NKPTS =     -8   k-points in BZ     NKDIM =     20   number of bands    NBANDS=     81";
+    REQUIRE_THROWS(outcar.parse_nkpts(line));
+    REQUIRE(-1 == outcar._NKPTS);
+  }
+
+  WHEN("Missing NKPTS data") {
+    const string line = "   k-points           NKPTS =   ";
+    REQUIRE_THROWS(outcar.parse_nkpts(line));
+    REQUIRE(-1 == outcar._NKPTS);
+  }
+
+  WHEN("KPoint array damaged") {
+    outcar.parse_nkpts(NKPTS_line);
+    KPoints_lines.pop_back();
+    REQUIRE_THROWS(outcar.parse_kpoints(KPoints_lines));
+  }
+
+  WHEN("KPoint array contains invalid charactor") {
+    KPoints_lines[19][11] = 'a';
+    outcar.parse_nkpts(NKPTS_line);
+    REQUIRE_THROWS(outcar.parse_kpoints(KPoints_lines));
+  }
+
+  WHEN("from raw file") {
+    std::ifstream ifs("./unit_test/test2/OUTCAR");
+    string content = outcar.file_to_string(ifs);
+    VecStr contentVector = outcar.string_to_vecstr(content);
+
+    REQUIRE(kpoint_result == outcar.parseKPoints(contentVector));
+  }
+}

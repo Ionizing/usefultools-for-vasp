@@ -27,17 +27,17 @@ public:
    * ~OUTCAR();
    */
 
-
 /*
  * Parse type of Pseudo Potentials
  */
 
+
+
 public:
   VecStr parseElems(const VecStr& lines, 
                     const string& content,
-                    const int     startline = 0,
-                          int     endline = -1);
-
+                    const int     startline =  0,
+                          int     endline   = -1);
 private:
   VecStr parse_elems(const VecStr& lines);
   const string& file_to_string(std::istream& is);
@@ -50,11 +50,30 @@ private:
  */
 public:
   Mat33d parseLatticeVectors(const VecStr& lines, 
-                             const int     startline = 0, 
-                                   int     endline = -1);
-
+                             const int     startline =  0, 
+                                   int     endline   = -1);
 private:
   Mat33d parse_lattice_vectors(const VecStr& lines);
+
+/*
+ * Parse Atom initial Positions
+ */
+
+
+
+/*
+ * Parse K-Point Path
+ */
+public:
+  MatX3d parseKPoints(const VecStr& lines,
+                      const int     startline =  0,
+                            int     endline   = -1);
+private:
+  int        _NKPTS;
+  MatX3d     _kpoints;
+  const int&    parse_nkpts(const string& line);
+  const MatX3d& parse_kpoints(const VecStr& lines);
+
 
 
 public:
@@ -79,6 +98,8 @@ private:
   VecStr _Elems;
   
 // INCAR involved parameters
+  int __current_line;
+
   int _EDIFF;
   int _EDIFFG;
   int _ENCUT;
@@ -91,7 +112,6 @@ private:
   int _NBANDS;
   int _NELMIN;
   int _NIONS;
-  int _NKPTS;
   int _NSW;
 
   int _nElems;

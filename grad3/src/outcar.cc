@@ -108,6 +108,7 @@ namespace ionizing {
       }
       if (cnt == _nElems) {
         break;
+        __current_line = i;
       } else /**/ ;
     }
 
@@ -144,7 +145,7 @@ namespace ionizing {
     for (int i=0; i!=3; ++i) {
       sscanf(lines[i].c_str(), " A%*c = (%lf,%lf,%lf)", &out(i, 0), &out(i, 1), &out(i, 2));
     }
-
+    
     return out;
   }
 
@@ -164,7 +165,7 @@ namespace ionizing {
         lines_to_use.push_back(lines[  i  ]);
         lines_to_use.push_back(lines[i + 1]);
         lines_to_use.push_back(lines[i + 2]);
-
+        __current_line = i + 2;
         break;
       }
     }
@@ -172,6 +173,108 @@ namespace ionizing {
   }
 
 
+/*
+ * MatX3d parseKPoints(const VecStr& lines,
+ *                     const int     startline,
+ *                           int     endline);
+ *  In: VecStr& of OUTCAR
+ * Out: MatX3d of KPoint coordinates
+ */
+  MatX3d OUTCAR::parseKPoints(const VecStr& lines,
+                              const int     startline,
+                                    int     endline) {
+    endline = (-1 == endline) ? lines.size() : endline;
+    for (int i=startline; i!=endline; ++i) {
+      if (is_start_with(lines[i], "   k-points     ")) {
+        parse_nkpts(lines[i]);
+        __current_line = i + 1;
+        break;
+      }
+    }
 
+    for (int i=__current_line; i!=endline; ++i) {
+      if (is_start_with(lines[i], " k-points in reciprocal latt")) {
+        __current_line = i + 1;
+        break;
+      }
+    }
+
+    VecStr lines_to_use{lines.begin() + __current_line, 
+                        lines.begin() + __current_line + this->_NKPTS};
+    return parse_kpoints(lines_to_use);
+  }
+
+
+
+/*
+ * const int& parse_nkpts(const string& line);
+ *  In: string with "NKPTS = XX"
+ *  ----------
+ *  "   k-points           NKPTS =     20   k-points in BZ     NKDIM =     20   number of bands    NBANDS=     81"
+ *  ----------
+ * Out: NKPTS in integer
+ *  ----------
+ *  20
+ *  ----------
+ */
+  const int& OUTCAR::parse_nkpts(const string& line) {
+    if (!is_start_with(line, "   k-points           NKPTS = ")) {
+      _NKPTS = -1;
+      throw string_printf("Invalid line input for NKPTS parsing:\n%s", line.c_str());
+      return _NKPTS;
+    }
+
+    int flag = sscanf(line.c_str(), "   k-points           NKPTS = %d", &_NKPTS);
+    if (1 != flag or _NKPTS <= 0) {
+      _NKPTS = -1;
+      throw string_printf("Parse NKPTS failed:\n%s\n NKPTS=%d", line.c_str(), _NKPTS);
+      return _NKPTS;
+    }
+    return _NKPTS;
+  }
+
+/*
+ * const MatX3d& parse_kpoints(VecStr& lines)
+ * ***** CAUTION: REQUIRE(lines.size() == _NKPTS) *****
+ *  In: VecStr with KPoints cooridinates
+ *  -----------
+ *     "0.06250000  0.06250000  0.06250000       0.016",
+ *     "0.18750000  0.06250000  0.06250000       0.047",
+ *     "0.31250000  0.06250000  0.06250000       0.047",
+ *     ...
+ *  -----------
+ * Out: MatX3d of KPoints coordinates
+ *  -----------
+ *  [[0.06250000, 0.06250000, 0.06250000],
+ *   [0.18750000, 0.06250000, 0.06250000],
+ *   [0.31250000, 0.06250000, 0.06250000],
+ *                                    ...]
+ *  -----------
+ */
+  const MatX3d& OUTCAR::parse_kpoints(const VecStr& lines) {
+    if (_NKPTS <= 0) {
+      throw string_printf("Invalid NKPTS:%4d", _NKPTS);
+      return _kpoints;
+    }
+    if (static_cast<int>(lines.size()) != _NKPTS) {
+      throw string_printf("Inconsistent KPoint number and KPath array size: %4d != %4lld", _NKPTS, lines.size());
+      return _kpoints;
+    }
+    _kpoints.resize(_NKPTS, 3);
+
+    double col1, col2, col3;
+    for (int i=0; i!=_NKPTS; ++i) {
+      if (3 != sscanf(lines[i].c_str(), "%lf%lf%lf", 
+            &col1, &col2, &col3 )) {
+        throw string_printf("Parsing KPath failed:\n%s", lines[i].c_str());
+        return _kpoints;
+      } else {
+        _kpoints(i, 0) = col1;
+        _kpoints(i, 1) = col2;
+        _kpoints(i, 2) = col3;
+      }
+    }
+    return _kpoints;
+  }
 
 }
