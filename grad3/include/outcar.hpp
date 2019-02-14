@@ -14,10 +14,8 @@
 
 namespace ionizing{ 
 
-#define UNIT_TEST
-
 #ifdef UNIT_TEST
-#define private public  // Just for unit_test
+#  define private public  // Just for unit_test
 #endif
 
 class OUTCAR {
@@ -68,10 +66,10 @@ private:
 public:
   INCAR parseINCAR(const VecStr& lines,
                    const int     startline =  0,
-                   const int     endline   = -1);
+                         int     endline   = -1);
 private:
   INCAR _incar;
-  int parse_incar(const VecStr& lines);
+  void parse_incar(const VecStr& lines);
 
   double parse_ediff        (const string& line);
   double parse_ediffg       (const string& line);

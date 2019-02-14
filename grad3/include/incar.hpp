@@ -4,10 +4,10 @@
 
 struct INCAR {
 
-  int _EDIFF,
-      _EDIFFG,
-      _ENCUT,
-      _IBRION,
+  double _EDIFF,
+         _EDIFFG,
+         _ENCUT;
+  int _IBRION,
       _ISIF,    
       _ISPIN,   
       _LNONCOLLINEAR, 

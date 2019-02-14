@@ -1,4 +1,5 @@
 #define CATCH_CONFIG_MAIN
+#define UNIT_TEST
 
 #include <outcar.hpp>
 #include <catch.hpp>
@@ -192,4 +193,128 @@ TEST_CASE("Parse KPoints") {
 
     REQUIRE(kpoint_result == outcar.parseKPoints(contentVector));
   }
+}
+
+TEST_CASE("INCAR Parameters in OUTCAR") {
+  string ediff_line         = "   EDIFF  = 0.1E-05   stopping-criterion for ELM";
+  string ediffg_line        = "   EDIFFG = -.3E-01   stopping-criterion for IOM";
+  string encut_line         = "   ENCUT  =  500.0 eV  36.75 Ry    6.06 a.u.  30.47 23.11 54.70*2*pi/ulx,y,z ";
+  string ibrion_line        = "   IBRION =      1    ionic relax: 0-MD 1-quasi-New 2-CG";
+  string isif_line          = "   ISIF   =      3    stress and relaxation";
+  string ispin_line         = "   ISPIN  =      1    spin polarized calculation?";
+  string lnoncollinear_line = "   LNONCOLLINEAR =      F non collinear calculations";
+  string lsorbit_line       = "   LSORBIT =      F    spin-orbit coupling";
+  string lorbit_line        = "   LORBIT =      0    0 simple, 1 ext, 2 COOP (PROOUT)";
+  string nbands_line        = "   k-points           NKPTS =      9   k-points in BZ     NKDIM =      9   number of bands    NBANDS=     98";
+  string nelmin_line        = "   NELM   =     60;   NELMIN=  6; NELMDL= -5     # of ELM steps""   NELM   =     60;   NELMIN=  6; NELMDL= -5     # of ELM steps";
+  string nions_line         = "   number of dos      NEDOS =    301   number of ions     NIONS =     27";
+  string nsw_line           = "   NSW    =    200    number of steps for IOM";
+  string nkpts_line         = nbands_line;
+  
+  WHEN("parse_ediff") {
+    REQUIRE(1e-6 == outcar.parse_ediff(ediff_line));
+    REQUIRE(1e-6 == outcar._incar._EDIFF);
+  }
+  WHEN("parse_ediffg") {
+    REQUIRE(-3e-2 == outcar.parse_ediffg(ediffg_line));
+    REQUIRE(-3e-2 == outcar._incar._EDIFFG);
+  }
+  WHEN("parse_encut") {
+    REQUIRE(500.0 == outcar.parse_encut(encut_line));
+    REQUIRE(500.0 == outcar._incar._ENCUT);
+  }
+  WHEN("parse_ibrion") {
+    REQUIRE(1 == outcar.parse_ibrion(ibrion_line));
+    REQUIRE(1 == outcar._incar._IBRION);
+  }
+  WHEN("parse_isif") {
+    REQUIRE(3 == outcar.parse_isif(isif_line));
+    REQUIRE(3 == outcar._incar._ISIF);
+  }
+  WHEN("parse_ispin") {
+    REQUIRE(1 == outcar.parse_ispin(ispin_line));
+    REQUIRE(1 == outcar._incar._ISPIN);
+  }
+  WHEN("parse_lnoncollinear") {
+    REQUIRE(0 == outcar.parse_lnoncollinear(lnoncollinear_line));
+    REQUIRE(0 == outcar._incar._LNONCOLLINEAR);
+  }
+  WHEN("parse_lsorbit") {
+    REQUIRE(0 == outcar.parse_lsorbit(lsorbit_line));
+    REQUIRE(0 == outcar._incar._LSORBIT);
+  }
+  WHEN("parse_lorbit") {
+    REQUIRE(0 == outcar.parse_lorbit(lorbit_line));
+    REQUIRE(0 == outcar._incar._LORBIT);
+  }
+  WHEN("parse_nbands") {
+    REQUIRE(98 == outcar.parse_nbands(nbands_line));
+    REQUIRE(98 == outcar._incar._NBANDS);
+  }
+  WHEN("parse_nelmin") {
+    REQUIRE(6 == outcar.parse_nelmin(nelmin_line));
+    REQUIRE(6 == outcar._incar._NELMIN);
+  }
+  WHEN("parse_nions") {
+    REQUIRE(27 == outcar.parse_nions(nions_line));
+    REQUIRE(27 == outcar._incar._NIONS);
+  }
+  WHEN("parse_nsw") {
+    REQUIRE(200 == outcar.parse_nsw(nsw_line));
+    REQUIRE(200 == outcar._incar._NSW);
+  }
+  WHEN("parse_nkpts") {
+    REQUIRE(9 == outcar.parse_nkpts(nkpts_line));
+    REQUIRE(9 == outcar._incar._NKPTS);
+  }
+
+  std::ifstream ifs("./unit_test/test2/OUTCAR");
+  string content       = outcar.file_to_string(ifs);
+  VecStr contentVector = outcar.string_to_vecstr(content);
+  outcar.parseINCAR(contentVector);
+
+  INCAR incar_result;
+  incar_result._EDIFF         = 1e-6;
+  incar_result._EDIFFG        = -1e-2;
+  incar_result._ENCUT         = 400.0;
+  incar_result._IBRION        = 1;
+  incar_result._ISIF          = 3;
+  incar_result._ISPIN         = 1;
+  incar_result._LNONCOLLINEAR = 0;
+  incar_result._LORBIT        = 0;
+  incar_result._LSORBIT       = 0;
+  incar_result._NBANDS        = 81;
+  incar_result._NELMIN        = 2;
+  incar_result._NIONS         = 32;
+  incar_result._NSW           = 100;
+  incar_result._NKPTS         = 20;
+
+  WHEN("EDIFF")
+    REQUIRE(incar_result._EDIFF         == outcar._incar._EDIFF        );
+  WHEN("EDIFFG")
+    REQUIRE(incar_result._EDIFFG        == outcar._incar._EDIFFG       );
+  WHEN("ENCUT")
+    REQUIRE(incar_result._ENCUT         == outcar._incar._ENCUT        );
+  WHEN("IBRION")
+    REQUIRE(incar_result._IBRION        == outcar._incar._IBRION       );
+  WHEN("ISIF")
+    REQUIRE(incar_result._ISIF          == outcar._incar._ISIF         );
+  WHEN("ISPIN")
+    REQUIRE(incar_result._ISPIN         == outcar._incar._ISPIN        );
+  WHEN("LNONCOLLINEAR")
+    REQUIRE(incar_result._LNONCOLLINEAR == outcar._incar._LNONCOLLINEAR);
+  WHEN("LORBIT")
+    REQUIRE(incar_result._LORBIT        == outcar._incar._LORBIT       );
+  WHEN("LSORBIT")
+    REQUIRE(incar_result._LSORBIT       == outcar._incar._LSORBIT      );
+  WHEN("NBANDS")
+    REQUIRE(incar_result._NBANDS        == outcar._incar._NBANDS       );
+  WHEN("NELMIN")
+    REQUIRE(incar_result._NELMIN        == outcar._incar._NELMIN       );
+  WHEN("NIONS")
+    REQUIRE(incar_result._NIONS         == outcar._incar._NIONS        );
+  WHEN("NSW")
+    REQUIRE(incar_result._NSW           == outcar._incar._NSW          );
+  WHEN("NKPTS")
+    REQUIRE(incar_result._NKPTS         == outcar._incar._NKPTS        );
 }

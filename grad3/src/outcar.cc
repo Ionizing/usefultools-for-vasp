@@ -176,39 +176,411 @@ namespace ionizing {
 /*
  * int getMiniINCAR()
  */
-/*
- *   INCAR OUTCAR::parseINCAR(const VecStr& lines,
- *                            const int     startline,
- *                            const int     endline) {
- *     INCAR out;
- * 
- *     return out;
- *   }
- */
+  INCAR OUTCAR::parseINCAR(const VecStr& lines,
+                           const int     startline,
+                                 int     endline) {
+    endline = (-1 == endline) ? lines.size() : endline;
+    int start_line = startline,
+        end_line = endline; // INCAR part in OUTCAR
+
+    for (int i=startline; i!=endline; ++i) {
+      if (is_start_with(lines[i], " Dimension of arrays:")) {
+        start_line = i;
+      }
+      if (is_start_with(lines[i], " Orbital magnetization")) {
+        end_line = __current_line = i + 3;
+        break;
+      }
+    }
+
+    VecStr INCAR_part(lines.begin() + start_line, lines.begin() + end_line);
+    parse_incar(INCAR_part);
+    return _incar;
+  }
 
   
 /*
  * int parse_incar(const VecStr& lines);
  */
-/*
- *   int OUTCAR::parse_incar(const VecStr& lines) {
- * 
- *   }
- */
+  void OUTCAR::parse_incar(const VecStr& lines) {
+    int parsed_lines = 0;
+    for (const string& line : lines) {
+      if (       is_start_with(line, "   EDIFF  =")) {
+        parse_ediff(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   EDIFFG =")) {
+        parse_ediffg(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   ENCUT  =")) {
+        parse_encut(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   IBRION =")) {
+        parse_ibrion(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   ISIF   =")) {
+        parse_isif(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   ISPIN  =")) {
+        parse_ispin(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   LNONCOLLINEAR =")) {
+        parse_lnoncollinear(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   LORBIT =")) {
+        parse_lorbit(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   LSORBIT =")) {
+        parse_lsorbit(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   k-points     ")) {
+        parse_nkpts(line);
+        parse_nbands(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   NELM   =")) {
+        parse_nelmin(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   number of dos   ")) {
+        parse_nions(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   NSW    =")) {
+        parse_nsw(line);
+        ++parsed_lines;
+      } else if (is_start_with(line, "   DQ     =")) {
+        break;
+      }
+    }
 
+    /*
+     * if (13 != parsed_lines) {
+     *   string str;
+     *   string_printf("\tINCAR Parse failed with incorrect lines:%4d\n", parsed_lines);
+     *   throw str;
+     * }
+     */
 
-
-
-  double OUTCAR::parse_ediff(const string& line) {
-    
   }
 
 
 
+/*
+ * double parse_ediff(string& line)
+ *  In: 
+ *  ----------
+ *  "   EDIFF  = 0.1E-05   stopping-criterion for ELM"
+ *  ----------
+ * Out: 
+ *  ----------
+ * 0.000001
+ *  ----------
+*/
+  double OUTCAR::parse_ediff(const string& line) {
+    double tmp;
+    int flag = sscanf(line.c_str(), "   EDIFF  = %lf", &tmp);
+    if (1 != flag) {
+      string str = string_printf("Parse EDIFF failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._EDIFF = -1;
+    }
+    return this->_incar._EDIFF = tmp;
+  }
+
+/*
+ * double parse_ediffg(string& line)
+ *  In: 
+ *  ----------
+ *  "   EDIFFG = -.3E-01   stopping-criterion for IOM"
+ *  ----------
+ * Out: 
+ *  ----------
+ * -0.03
+ *  ----------
+ */
+  double OUTCAR::parse_ediffg(const string& line) {
+    double tmp;
+    int flag = sscanf(line.c_str(), "   EDIFFG = %lf", &tmp);
+    if (1 != flag) {
+      string str = string_printf("Parse EDIFFG failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._EDIFFG = -1;
+    }
+    return this->_incar._EDIFFG = tmp;
+  }
+
+/*
+ * double parse_encut(string& line)
+ *  In: 
+ *  -----------
+ *  "   ENCUT  =  500.0 eV  36.75 Ry    6.06 a.u.  30.47 23.11 54.70*2*pi/ulx,y,z "
+ *  -----------
+ * Out:
+ *  -----------
+ *  500.0
+ *  -----------
+ */
+  double OUTCAR::parse_encut(const string& line) {
+    double tmp;
+    int flag = sscanf(line.c_str(), "   ENCUT  = %lf eV", &tmp);
+    if (1 != flag) {
+      string str = string_printf("Parse ENCUT failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._ENCUT = -1;
+    }
+    return this->_incar._ENCUT = tmp;
+  }
+
+/*
+ * int parse_ibrion(string& line)
+ *  In: 
+ *  -----------
+ *  "   IBRION =      1    ionic relax: 0-MD 1-quasi-New 2-CG"
+ *  -----------
+ * Out:
+ *  -----------
+ *  1
+ *  -----------
+ */
+  int OUTCAR::parse_ibrion(const string& line) {
+    int tmp;
+    int flag = sscanf(line.c_str(), "   IBRION = %d", &tmp);
+    if (1 != flag) {
+      string str = string_printf("Parse IBRION failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._IBRION = -1;
+    }
+    return this->_incar._IBRION = tmp;
+  }
+
+/*
+ * int parse_isif(stirng& line)
+ *  In:
+ *  ----------
+ *  "   ISIF   =      3    stress and relaxation"
+ *  ----------
+ * Out:
+ *  ----------
+ *  3
+ *  ----------
+ */
+  int OUTCAR::parse_isif(const string& line) {
+    int tmp;
+    int flag = sscanf(line.c_str(), "   ISIF   = %d", &tmp);
+    if (1 != flag or (tmp < 0 or tmp > 3)) {
+      string str = string_printf("Parse ISIF failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._ISIF = -1;
+    }
+    return this->_incar._ISIF = tmp;
+  }
+
+/*
+ * int parse_ispin(stirng& line)
+ *  In:
+ *  ----------
+ * "   ISPIN  =      1    spin polarized calculation?"
+ *  ----------
+ * Out:
+ *  ----------
+ *  1
+ *  ----------
+ */
+  int OUTCAR::parse_ispin(const string& line) {
+    int tmp;
+    int flag = sscanf(line.c_str(), "   ISPIN  = %d", &tmp);
+    if (1 != flag or tmp < 0) {
+      string str = string_printf("Parse ISIF failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._ISPIN = -1;
+    }
+    return this->_incar._ISPIN = tmp;
+  }
 
 
+/*
+ * int parse_lnoncollinear(stirng& line)
+ *  In:
+ *  ----------
+ *  "   LNONCOLLINEAR =      F non collinear calculations"
+ *  ----------
+ * Out:
+ *  ----------
+ *  0
+ *  ----------
+ */
+  int OUTCAR::parse_lnoncollinear(const string& line) {
+    char tmp;
+    int flag = sscanf(line.c_str(), "   LNONCOLLINEAR =      %c", &tmp);
+    if (1 != flag or (tmp != 'F' and tmp != 'T')) {
+      string str = string_printf("Parse LNONCOLLINEAR failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._LNONCOLLINEAR = -1;
+    }
+    return this->_incar._LNONCOLLINEAR = ('T' == tmp);
+  }
 
 
+/*
+ * int parse_lsorbit(stirng& line)
+ *  In:
+ *  ----------
+ *  "   LSORBIT =      F    spin-orbit coupling"
+ *  ----------
+ * Out:
+ *  ----------
+ *  0
+ *  ----------
+ */
+  int OUTCAR::parse_lsorbit(const string& line) {
+    char tmp;
+    int flag = sscanf(line.c_str(), "   LSORBIT =      %c", &tmp);
+    if (1 != flag or (tmp != 'F' and tmp != 'T')) {
+      string str = string_printf("Parse LSORBOT failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._LSORBIT = -1;
+    }
+    return this->_incar._LSORBIT = ('T' == tmp);
+  }
+
+
+/*
+ * int parse_lorbit(stirng& line)
+ *  In:
+ *  ----------
+ *  "   LORBIT =      0    0 simple, 1 ext, 2 COOP (PROOUT)"
+ *  ----------
+ * Out:
+ *  ----------
+ *  0
+ *  ----------
+ */
+  int OUTCAR::parse_lorbit(const string& line) {
+    int tmp;
+    int flag = sscanf(line.c_str(), "   LORBIT =      %d", &tmp);
+    if (1 != flag or tmp < 0) {
+      string str = string_printf("Parse LORBOT failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._LORBIT = -1;
+    }
+    return this->_incar._LORBIT = tmp;
+  }
+
+
+/*
+ * int parse_nbands(stirng& line)
+ *  In:
+ *  ----------
+ *  "   k-points           NKPTS =      9   k-points in BZ     NKDIM =      9   number of bands    NBANDS=     98"
+ *  ----------
+ * Out:
+ *  ----------
+ *  98
+ *  ----------
+ */
+  int OUTCAR::parse_nbands(const string& line) {
+    int tmp;
+    int flag = sscanf(line.c_str(), "   k-points           NKPTS = %*d   k-points in BZ     NKDIM = %*d   number of bands    NBANDS=     %d", &tmp);
+    if (1 != flag or tmp < 0) {
+      string str = string_printf("Parse NBANDS failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._NBANDS = -1;
+    }
+    return this->_incar._NBANDS = tmp;
+  }
+
+
+/*
+ * int parse_nelmin(stirng& line)
+ *  In:
+ *  ----------
+ *  "   NELM   =     60;   NELMIN=  6; NELMDL= -5     # of ELM steps"
+ *  ----------
+ * Out:
+ *  ----------
+ *  6
+ *  ----------
+ */
+  int OUTCAR::parse_nelmin(const string& line) {
+    int tmp;
+    int flag = sscanf(line.c_str(), "   NELM   = %*d;   NELMIN= %d", &tmp);
+    if (1 != flag or tmp < 0) {
+      string str = string_printf("Parse NELMIN failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._NELMIN = -1;
+    }
+    return this->_incar._NELMIN = tmp;
+  }
+
+
+/*
+ * int parse_nions(stirng& line)
+ *  In:
+ *  ----------
+ *  "   number of dos      NEDOS =    301   number of ions     NIONS =     27"
+ *  ----------
+ * Out:
+ *  ----------
+ *  27
+ *  ----------
+ */
+  int OUTCAR::parse_nions(const string& line) {
+    int tmp;
+    int flag = sscanf(line.c_str(), "   number of dos      NEDOS = %*d   number of ions     NIONS = %d", &tmp);
+    if (1 != flag or tmp < 0) {
+      string str = string_printf("Parse NIONS failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._NIONS = -1;
+    }
+    return this->_incar._NIONS = tmp;
+  }
+
+
+/*
+ * int parse_nsw(stirng& line)
+ *  In:
+ *  ----------
+ *  "   NSW    =    200    number of steps for IOM"
+ *  ----------
+ * Out:
+ *  ----------
+ *  200
+ *  ----------
+ */
+  int OUTCAR::parse_nsw(const string& line) {
+    int tmp;
+    int flag = sscanf(line.c_str(), "   NSW    = %d", &tmp);
+    if (1 != flag or tmp < 0) {
+      string str = string_printf("Parse NIONS failed:\n\t%s\n", line.c_str());
+      throw str;
+      return this->_incar._NSW = -1;
+    }
+    return this->_incar._NSW = tmp;
+  }
+
+/*
+ * const int& parse_nkpts(const string& line);
+ *  In: string with "NKPTS = XX"
+ *  ----------
+ *  "   k-points           NKPTS =     20   k-points in BZ     NKDIM =     20   number of bands    NBANDS=     81"
+ *  ----------
+ * Out: NKPTS in integer
+ *  ----------
+ *  20
+ *  ----------
+ */
+  int OUTCAR::parse_nkpts(const string& line) {
+    if (!is_start_with(line, "   k-points           NKPTS = ")) {
+      _incar._NKPTS = -1;
+      throw string_printf("Invalid line input for NKPTS parsing:\n%s", line.c_str());
+      return _incar._NKPTS;
+    }
+
+    int flag = sscanf(line.c_str(), "   k-points           NKPTS = %d", &(_incar._NKPTS));
+    if (1 != flag or _incar._NKPTS <= 0) {
+      _incar._NKPTS = -1;
+      throw string_printf("Parse NKPTS failed:\n%s\n NKPTS=%d", line.c_str(), _incar._NKPTS);
+      return _incar._NKPTS;
+    }
+    return _incar._NKPTS;
+  }
 
 
 
@@ -246,32 +618,6 @@ namespace ionizing {
 
 
 
-/*
- * const int& parse_nkpts(const string& line);
- *  In: string with "NKPTS = XX"
- *  ----------
- *  "   k-points           NKPTS =     20   k-points in BZ     NKDIM =     20   number of bands    NBANDS=     81"
- *  ----------
- * Out: NKPTS in integer
- *  ----------
- *  20
- *  ----------
- */
-  int OUTCAR::parse_nkpts(const string& line) {
-    if (!is_start_with(line, "   k-points           NKPTS = ")) {
-      _incar._NKPTS = -1;
-      throw string_printf("Invalid line input for NKPTS parsing:\n%s", line.c_str());
-      return _incar._NKPTS;
-    }
-
-    int flag = sscanf(line.c_str(), "   k-points           NKPTS = %d", &(_incar._NKPTS));
-    if (1 != flag or _incar._NKPTS <= 0) {
-      _incar._NKPTS = -1;
-      throw string_printf("Parse NKPTS failed:\n%s\n NKPTS=%d", line.c_str(), _incar._NKPTS);
-      return _incar._NKPTS;
-    }
-    return _incar._NKPTS;
-  }
 
 /*
  * const MatX3d& parse_kpoints(VecStr& lines)
