@@ -38,11 +38,12 @@ public:
                     const int     startline =  0,
                           int     endline   = -1);
 private:
-  VecStr parse_elems(const VecStr& lines);
+  int    _nElems;
+        VecStr  parse_elems(const VecStr& lines);
   const string& file_to_string(std::istream& is);
   const VecStr& string_to_vecstr(const string& content);
-
-  VecStr test_parse_elem(std::istream& is);
+        VecStr  test_parse_elem(std::istream& is);
+        VecStr  _Elems;
 
 /*
  * Parse Lattice Vectors
@@ -102,36 +103,18 @@ private:
   const MatX3d& parse_kpoints(const VecStr& lines);
 
 
+
+/*
+ * Parse Ion Iterations
+ */
+
 public:
-// POSCAR info without selective dynamics
-  struct mini_POSCAR {
-    using VecElem = VecT<Element>;
-
-    string Header;
-    Mat33d LatticeVectors;    
-    VecElem ElementVector;
-
-    void print_to_file();
-  };
 
 private:
-// raw text
-  string _content;
-  VecStr _contentVector;
-
-// parsed data
-  string _filename;
-  VecStr _Elems;
-  
-// INCAR involved parameters
-  int __current_line;
-
-
-  int _nElems;
-  int _nIterations;
-  int _nSteps;
-
-  double _tottalEnergy;
+  int    _nIterations;
+  int    _nSteps;
+  double _totalEnergy;
+  double _totalEnergy_sigma_0;      // free energy without entropy when sigma -> 0
   double _lastEnergy;
   double _cpuTime;
   double _deltaE;
@@ -141,6 +124,48 @@ private:
   double _average;
   double _maxForce;
   double _accuracy;
+  MatX3d atom_forces_dirs;
+  MatX3d atom_positions;
+  Matd   atom_forces;
+
+  double parse_toten         (const string& line);
+  double parse_cpu_time      (const string& line);
+  MatX3d parse_atom_force    (const VecStr& lines);
+  MatX3d parse_atom_position (const VecStr& lines);
+  Matd   calc_atom_force     (const MatX3d& atom_forces);
+  double parse_magmom        (const string& lines);
+
+
+
+
+
+
+/*
+ * public:
+ * // POSCAR info without selective dynamics
+ *   struct mini_POSCAR {
+ *     using VecElem = VecT<Element>;
+ * 
+ *     string Header;
+ *     Mat33d LatticeVectors;    
+ *     VecElem ElementVector;
+ * 
+ *     void print_to_file();
+ *   };
+ */
+
+private:
+// raw text
+  string _content;
+  VecStr _contentVector;
+
+// parsed data
+  string _filename;
+  
+// INCAR involved parameters
+  int __current_line;
+
+
 
 private:
 
