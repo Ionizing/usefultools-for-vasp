@@ -128,16 +128,17 @@ private:
   MatX3d atom_positions;
   Matd   atom_forces;
 
-  double parse_toten         (const string& line);
-  double parse_cpu_time      (const string& line);
-  MatX3d parse_atom_force    (const VecStr& lines);
-  MatX3d parse_atom_position (const VecStr& lines);
-  Matd   calc_atom_force     (const MatX3d& atom_forces);
-  double parse_magmom        (const string& lines);
-
-
-
-
+        double parse_toten         (const string& line);
+        double calc_delta_toten    (const double toten, 
+                                    const double last_toten);
+        double parse_cpu_time      (const string& line);
+        double parse_magmom        (const string& lines);
+  const MatX3d& parse_atom_force    (const VecStr& lines);
+  const MatX3d& parse_atom_position (const VecStr& lines);
+  const Matd  & calc_atom_force     (const MatX3d& atom_force_dirs);
+        double calc_avg_force      (const Matd&   atom_force);
+        double calc_max_force       (const Matd&   atom_force);
+        double parse_lattice_volueme(const string& line);
 
 
 /*
