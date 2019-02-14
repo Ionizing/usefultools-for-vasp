@@ -10,6 +10,7 @@
 #include <base.hpp>
 #include <poscar.hpp>
 #include <stringops.hpp>
+#include <incar.hpp>
 
 namespace ionizing{ 
 
@@ -62,6 +63,36 @@ private:
 
 
 /*
+ * Parse mini-INCAR
+ */
+public:
+  INCAR parseINCAR(const VecStr& lines,
+                   const int     startline =  0,
+                   const int     endline   = -1);
+private:
+  INCAR _incar;
+  int parse_incar(const VecStr& lines);
+
+  double parse_ediff        (const string& line);
+  double parse_ediffg       (const string& line);
+  double parse_encut        (const string& line);
+  int    parse_ibrion       (const string& line);
+  int    parse_isif         (const string& line);
+  int    parse_ispin        (const string& line);
+  int    parse_lnoncollinear(const string& line);
+  int    parse_lorbit       (const string& line);
+  int    parse_lsorbit      (const string& line);
+  int    parse_nbands       (const string& line);
+  int    parse_nelmin       (const string& line);
+  int    parse_nions        (const string& line);
+  int    parse_nsw          (const string& line);
+  int    parse_nkpts        (const string& line);
+
+
+
+
+
+/*
  * Parse K-Point Path
  */
 public:
@@ -69,11 +100,8 @@ public:
                       const int     startline =  0,
                             int     endline   = -1);
 private:
-  int        _NKPTS;
   MatX3d     _kpoints;
-  const int&    parse_nkpts(const string& line);
   const MatX3d& parse_kpoints(const VecStr& lines);
-
 
 
 public:
@@ -100,19 +128,6 @@ private:
 // INCAR involved parameters
   int __current_line;
 
-  int _EDIFF;
-  int _EDIFFG;
-  int _ENCUT;
-  int _IBRION;
-  int _ISIF;
-  int _ISPIN;
-  int _LNONCOLLINEAR;
-  int _LORBIT;
-  int _LSORBIT;
-  int _NBANDS;
-  int _NELMIN;
-  int _NIONS;
-  int _NSW;
 
   int _nElems;
   int _nIterations;

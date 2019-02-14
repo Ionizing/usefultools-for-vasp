@@ -151,26 +151,26 @@ TEST_CASE("Parse KPoints") {
   
   WHEN("Normal case") {
     REQUIRE(outcar.parse_nkpts(NKPTS_line) == 20);
-    REQUIRE(outcar._NKPTS == 20);
+    REQUIRE(outcar._incar._NKPTS == 20);
     REQUIRE(outcar.parse_kpoints(KPoints_lines) == kpoint_result);
   }
 
   WHEN("Negative NKPTS") {
     const string line = "   k-points           NKPTS =     -8   k-points in BZ     NKDIM =     20   number of bands    NBANDS=     81";
     REQUIRE_THROWS(outcar.parse_nkpts(line));
-    REQUIRE(-1 == outcar._NKPTS);
+    REQUIRE(-1 == outcar._incar._NKPTS);
   }
 
   WHEN("Invalid NKPTS line prefix") {
     const string line = "  k-points           NKPTS =     -8   k-points in BZ     NKDIM =     20   number of bands    NBANDS=     81";
     REQUIRE_THROWS(outcar.parse_nkpts(line));
-    REQUIRE(-1 == outcar._NKPTS);
+    REQUIRE(-1 == outcar._incar._NKPTS);
   }
 
   WHEN("Missing NKPTS data") {
     const string line = "   k-points           NKPTS =   ";
     REQUIRE_THROWS(outcar.parse_nkpts(line));
-    REQUIRE(-1 == outcar._NKPTS);
+    REQUIRE(-1 == outcar._incar._NKPTS);
   }
 
   WHEN("KPoint array damaged") {

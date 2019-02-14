@@ -174,6 +174,46 @@ namespace ionizing {
 
 
 /*
+ * int getMiniINCAR()
+ */
+/*
+ *   INCAR OUTCAR::parseINCAR(const VecStr& lines,
+ *                            const int     startline,
+ *                            const int     endline) {
+ *     INCAR out;
+ * 
+ *     return out;
+ *   }
+ */
+
+  
+/*
+ * int parse_incar(const VecStr& lines);
+ */
+/*
+ *   int OUTCAR::parse_incar(const VecStr& lines) {
+ * 
+ *   }
+ */
+
+
+
+
+  double OUTCAR::parse_ediff(const string& line) {
+    
+  }
+
+
+
+
+
+
+
+
+
+
+
+/*
  * MatX3d parseKPoints(const VecStr& lines,
  *                     const int     startline,
  *                           int     endline);
@@ -200,7 +240,7 @@ namespace ionizing {
     }
 
     VecStr lines_to_use{lines.begin() + __current_line, 
-                        lines.begin() + __current_line + this->_NKPTS};
+                        lines.begin() + __current_line + this->_incar._NKPTS};
     return parse_kpoints(lines_to_use);
   }
 
@@ -217,20 +257,20 @@ namespace ionizing {
  *  20
  *  ----------
  */
-  const int& OUTCAR::parse_nkpts(const string& line) {
+  int OUTCAR::parse_nkpts(const string& line) {
     if (!is_start_with(line, "   k-points           NKPTS = ")) {
-      _NKPTS = -1;
+      _incar._NKPTS = -1;
       throw string_printf("Invalid line input for NKPTS parsing:\n%s", line.c_str());
-      return _NKPTS;
+      return _incar._NKPTS;
     }
 
-    int flag = sscanf(line.c_str(), "   k-points           NKPTS = %d", &_NKPTS);
-    if (1 != flag or _NKPTS <= 0) {
-      _NKPTS = -1;
-      throw string_printf("Parse NKPTS failed:\n%s\n NKPTS=%d", line.c_str(), _NKPTS);
-      return _NKPTS;
+    int flag = sscanf(line.c_str(), "   k-points           NKPTS = %d", &(_incar._NKPTS));
+    if (1 != flag or _incar._NKPTS <= 0) {
+      _incar._NKPTS = -1;
+      throw string_printf("Parse NKPTS failed:\n%s\n NKPTS=%d", line.c_str(), _incar._NKPTS);
+      return _incar._NKPTS;
     }
-    return _NKPTS;
+    return _incar._NKPTS;
   }
 
 /*
@@ -252,18 +292,18 @@ namespace ionizing {
  *  -----------
  */
   const MatX3d& OUTCAR::parse_kpoints(const VecStr& lines) {
-    if (_NKPTS <= 0) {
-      throw string_printf("Invalid NKPTS:%4d", _NKPTS);
+    if (_incar._NKPTS <= 0) {
+      throw string_printf("Invalid NKPTS:%4d", _incar._NKPTS);
       return _kpoints;
     }
-    if (static_cast<int>(lines.size()) != _NKPTS) {
-      throw string_printf("Inconsistent KPoint number and KPath array size: %4d != %4lld", _NKPTS, lines.size());
+    if (static_cast<int>(lines.size()) != _incar._NKPTS) {
+      throw string_printf("Inconsistent KPoint number and KPath array size: %4d != %4lld", _incar._NKPTS, lines.size());
       return _kpoints;
     }
-    _kpoints.resize(_NKPTS, 3);
+    _kpoints.resize(_incar._NKPTS, 3);
 
     double col1, col2, col3;
-    for (int i=0; i!=_NKPTS; ++i) {
+    for (int i=0; i!=_incar._NKPTS; ++i) {
       if (3 != sscanf(lines[i].c_str(), "%lf%lf%lf", 
             &col1, &col2, &col3 )) {
         throw string_printf("Parsing KPath failed:\n%s", lines[i].c_str());
@@ -276,5 +316,10 @@ namespace ionizing {
     }
     return _kpoints;
   }
+
+  
+
+
+
 
 }
