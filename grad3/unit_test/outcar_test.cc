@@ -318,3 +318,58 @@ TEST_CASE("INCAR Parameters in OUTCAR") {
   WHEN("NKPTS")
     REQUIRE(incar_result._NKPTS         == outcar._incar._NKPTS        );
 }
+
+
+TEST_CASE("Parse Iteration") {
+  std::ifstream ifs("./unit_test/test2/OUTCAR");
+  string content        = outcar.file_to_string(ifs);
+  VecStr contentVector  = outcar.string_to_vecstr(content);
+
+  WHEN("parse_magmom") {
+    const char* magmom_str = " number of electron    1026.0000000 magnetization     135.0000000";
+    const char* magmom_err = " number of electron    1026.0000000 magnetization";
+    REQUIRE(135.00 == outcar.parse_magmom(magmom_str));
+    REQUIRE(135.00 == outcar.tmpIteration._magmom);
+    REQUIRE_THROWS(outcar.parse_magmom(magmom_err));
+  }
+
+  WHEN("parse_lattice_volume") {
+    const char* volume_str = "  volume of cell :      425.26";
+    const char* voluem_err = "  volume of cell :";
+    REQUIRE(425.26 == outcar.parse_lattice_volume(volume_str));
+    REQUIRE(425.26 == outcar.tmpIteration._volume);
+    REQUIRE_THROWS(outcar.parse_lattice_volume(voluem_err));
+  }
+
+  WHEN("parse_lattice") {
+    VecStr lattice_vecstr {
+      "     7.519999981  0.000000000  0.000000000     0.132978724  0.000000000  0.000000000",
+      "     0.000000000  7.519999981  0.000000000     0.000000000  0.132978724  0.000000000",
+      "     0.000000000  0.000000000  7.519999981     0.000000000  0.000000000  0.132978724" 
+    };
+    Mat33d lattice_result;
+    lattice_result << 7.519999981, 0.000000000, 0.000000000,
+                      0.000000000, 7.519999981, 0.000000000,
+                      0.000000000, 0.000000000, 7.519999981;
+    REQUIRE(lattice_result == outcar.parse_lattice(lattice_vecstr));
+  }
+
+  WHEN("parse_atom_force_pos") {
+    VecStr forcepos_vec {
+        "     0.52935      0.52935      0.52935         0.000716      0.000716      0.000716",
+        "     6.96491      3.21778      4.27649        -0.000716     -0.000716      0.000716",
+        "     3.21778      4.27649      6.96491        -0.000716      0.000716     -0.000716",
+        "     4.27649      6.96491      3.21778         0.000716     -0.000716     -0.000716"};
+    MatX3d forcepos_res;
+    forcepos_res.resize(4, 3);
+    forcepos_res <<  0.000716,  0.000716,  0.000716,
+                    -0.000716, -0.000716,  0.000716,
+                    -0.000716,  0.000716, -0.000716,
+                     0.000716, -0.000716, -0.000716;
+
+    REQUIRE_THROWS(outcar.parse_atom_force_pos(forcepos_vec));
+    outcar._incar._NIONS = 4;
+    REQUIRE(forcepos_res == outcar.parse_atom_force_pos(forcepos_vec));
+  }
+
+}
