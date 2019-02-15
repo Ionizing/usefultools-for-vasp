@@ -697,24 +697,6 @@ namespace ionizing {
     return this->tmpIteration._totalEnergy;
   }
 
-/*
- * double calc_delta_toten(double toten, double last_toten)
- *  In:
- *  ----------
- *  -20, 0
- *  ----------
- * Out:
- *  ----------
- *  -20
- *  ----------
- */
-  /*
-   * double OUTCAR::calc_delta_toten(const double toten,
-   *     const double last_toten) {
-   *   return toten - last_toten;
-   * }
-   */
-
 
 /*
  * double parse_cpu_time(const string& line)
@@ -938,7 +920,7 @@ namespace ionizing {
  *                        ...]
  * ----------
  */
- const Vecd& OUTCAR::calc_atom_force(const MatX3d& atom_force_dirs) {
+ inline const Vecd& OUTCAR::calc_atom_force(const MatX3d& atom_force_dirs) {
    Vecd out;
    out.resize(atom_force_dirs.rows());
    for (int i=0; i!=atom_force_dirs.rows(); ++i) {
@@ -947,23 +929,6 @@ namespace ionizing {
    this->tmpIteration._atom_forces = std::move(out);
    return this->tmpIteration._atom_forces;
  }
-
-
-/*
- * double calc_avg_force(Vecd& atom_force)
- */
- double OUTCAR::calc_avg_force(const Vecd& atom_force) {
-   return atom_force.sum() / atom_force.size();
- }
-
-
-/*
- * double calc_max_force(Vecd atom_force)
- */
- double OUTCAR::calc_max_force(const Vecd& atom_force) {
-   return atom_force.maxCoeff();
- }
-
 
 /*
  * IonIteration parse_iteration(VecStr& lines)
@@ -989,6 +954,18 @@ namespace ionizing {
    int i_line = 0;
    const int end_of_lines = lines.size();
    const int nions = this->_incar._NIONS;
+
+   for (; i_line < end_of_lines; ++i_line) {
+     if (is_start_with(lines[i_line], " number of electron")) {
+       this->tmpIteration._nSCF += 1;
+       parse_magmom(lines[i_line]);
+       continue;
+     }
+
+     if (is_start_with(lines[i_line], "------------------------ aborting loop")) {
+       break;
+     }
+   }
 
    for (; i_line < end_of_lines; ++i_line) {
      if (is_start_with(lines[i_line], " VOLUME and BASIS")) {
@@ -1029,19 +1006,14 @@ namespace ionizing {
        break;
      }
    }
+
+   calc_atom_force(this->tmpIteration._atom_forces_dirs);
+   this->tmpIteration._maxForce = this->tmpIteration._atom_forces.maxCoeff();
+   this->tmpIteration._averageF = this->tmpIteration._atom_forces.sum() / this->_incar._NIONS;
+   this->tmpIteration._deltaE   = this->tmpIteration._totalEnergy - this->_lastEnergy;
+   this->_lastEnergy            = this->tmpIteration._totalEnergy;
    return this->tmpIteration;
  }
-
-
-
-
-
-
-
-
-
-
-
 
 
 /*
@@ -1070,6 +1042,7 @@ namespace ionizing {
 
    this->_nIterations   =  0;
    this->_nSteps        =  0;
+   this->_lastEnergy    = .0;
 
    int it_start, it_end;
    bool is_in_iteration = false;
@@ -1083,7 +1056,8 @@ namespace ionizing {
        it_end = i + 1;
        is_in_iteration = false;
        VecStr iteration_lines(lines.begin() + it_start, lines.begin() + it_end);
-       _iterationVec.push_back(parse_iteration(iteration_lines));
+       parse_iteration(iteration_lines);
+       _iterationVec.push_back(tmpIteration);
        continue;
      }
    }
@@ -1091,11 +1065,4 @@ namespace ionizing {
  }
 
 
-
-
-
-
-
-
-
-}
+} // namepsace ionizing

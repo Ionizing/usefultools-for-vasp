@@ -25,18 +25,14 @@ public:
    * OUTCAR(const char* file_name);
    * ~OUTCAR();
    */
-
-/*
- * Parse type of Pseudo Potentials
- */
-
-
-
-
 private:
   const string& file_to_string(std::istream& is);
   const VecStr& string_to_vecstr(const string& content);
 
+
+/*
+ * Parse type of Pseudo Potentials
+ */
 public:
   VecStr parseElems(const VecStr& lines, 
                     const string& content,
@@ -91,10 +87,6 @@ private:
   int    parse_nsw          (const string& line);
   int    parse_nkpts        (const string& line);
 
-
-
-
-
 /*
  * Parse K-Point Path
  */
@@ -111,7 +103,6 @@ private:
 /*
  * Parse Ion Iterations
  */
-
 public:
 
 private:
@@ -123,14 +114,28 @@ private:
     double _deltaE;
     double _magmom;
     double _volume;
-    double _totaltime;
-    double _average;
+    double _averageF;
     double _maxForce;
-    double _accuracy;
     MatX3d _atom_forces_dirs;
     MatX3d _atom_positions;
     Vecd   _atom_forces;
     Mat33d _lattice_vector;
+
+    IonIteration() :                  // Initialization
+      _nSCF               { 0},
+      _totalEnergy        {.0},
+      _totalEnergy_sigma_0{.0},
+      _cpuTime            {.0},
+      _deltaE             {.0},
+      _magmom             {.0},
+      _volume             {.0},
+      _averageF           {.0},
+      _maxForce           {.0},
+      _atom_forces_dirs   {  },
+      _atom_positions     {  },
+      _atom_forces        {  },
+      _lattice_vector     {  } {}
+
   } tmpIteration;
   using VecIt = std::vector<IonIteration>;
   VecIt _iterationVec;
@@ -138,8 +143,6 @@ private:
   int    _nSteps;
   double _lastEnergy;
 
-        double  calc_delta_toten     (const double  toten, 
-                                      const double  last_toten);
   IonIteration  parse_iteration      (const VecStr& lines);
   const VecIt & parse_iteration_vec  (const VecStr& lines,
                                       const int     startline =  0,
@@ -152,9 +155,6 @@ private:
         double  parse_cpu_time       (const string& line);
 
   const Vecd  & calc_atom_force      (const MatX3d& atom_force_dirs);
- inline double  calc_avg_force       (const Vecd&   atom_force);
- inline double  calc_max_force       (const Vecd&   atom_force);
-
 
 /*
  * public:
