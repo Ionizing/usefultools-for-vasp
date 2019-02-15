@@ -708,10 +708,12 @@ namespace ionizing {
  *  -20
  *  ----------
  */
-  double OUTCAR::calc_delta_toten(const double toten,
-      const double last_toten) {
-    return toten - last_toten;
-  }
+  /*
+   * double OUTCAR::calc_delta_toten(const double toten,
+   *     const double last_toten) {
+   *   return toten - last_toten;
+   * }
+   */
 
 
 /*
@@ -856,7 +858,7 @@ namespace ionizing {
  * "     4.27649      4.27649      0.52935         0.000716      0.000716      0.000716",
  * "     5.09135      5.09135      1.34421        -0.000716     -0.000716     -0.000716"]
  * ----------
- * Out:
+ * Out: (Writes 2 matrix, Returns the latter)
  * ----------
  *  Positions:
  * [[ 0.52935, 0.52935, 0.52935], [ 6.96491, 3.21778, 4.27649],
@@ -895,25 +897,204 @@ namespace ionizing {
  * ----------
  */
  const MatX3d& OUTCAR::parse_atom_force_pos(const VecStr& lines) {
-   if (lines.size() != this->_incar._NIONS) {
+   if (static_cast<int>(lines.size()) != this->_incar._NIONS) {
      string str = string_printf("Parse Iteration's atom position & forces failed:\n\tlines.size() = %3d, NIONS = %3d\n",
         static_cast<int>(lines.size()), this->_incar._NIONS);
      throw str;
-     return this->tmpIteration._atom_forces;
+     return this->tmpIteration._atom_forces_dirs;
    }
    MatX3d tmppos, tmpforce;
    tmppos.resize(lines.size(), 3);
    tmpforce.resize(lines.size(), 3);
    for (size_t i=0; i!=lines.size(); ++i) {
-     sscanf(lines[i].c_str(), "%lf %lf %lf %lf %lf %lf",
-         &tmppos(i, 0), &tmppos(i, 1), &tmppos(i, 2), 
-         &tmpforce(i, 0), &tmpforce(i, 1), &tmpforce(i, 2));
+     int flag = sscanf(lines[i].c_str(), "%lf %lf %lf %lf %lf %lf",
+           &tmppos(i, 0), &tmppos(i, 1), &tmppos(i, 2), 
+           &tmpforce(i, 0), &tmpforce(i, 1), &tmpforce(i, 2));
+     if (6 != flag) {
+       string str = string_printf("Parse Iteration Pos & Force failed:\n\tNo. %3d line of input VecStr:\n\t%s\n",
+           static_cast<int>(i), lines[i].c_str());
+     }
    }
-
-   return this->tmpIteration._atom_forces;
+   this->tmpIteration._atom_forces_dirs = std::move(tmpforce);
+   this->tmpIteration._atom_positions   = std::move(tmppos);
+   return this->tmpIteration._atom_forces_dirs;
  }
    
    
+/*
+ * Vecd& calc_atom_force(MatrX3d atom_force_dirs)
+ *  In:
+ * ----------
+ *  [[a1, b1, c1],
+ *   [a2, b2, c2],
+ *   [a3, b3, c3],
+ *           ...]
+ * ----------
+ * Out:
+ * ----------
+ *  [sqrt(a1^2 + b1^2 + c1^2),
+ *   sqrt(a2^2 + b2^2 + c2^2),
+ *   sqrt(a3^2 + b3^2 + c3^2),
+ *                        ...]
+ * ----------
+ */
+ const Vecd& OUTCAR::calc_atom_force(const MatX3d& atom_force_dirs) {
+   Vecd out;
+   out.resize(atom_force_dirs.rows());
+   for (int i=0; i!=atom_force_dirs.rows(); ++i) {
+     out(i) = atom_force_dirs.row(i).norm();
+   }
+   this->tmpIteration._atom_forces = std::move(out);
+   return this->tmpIteration._atom_forces;
+ }
+
+
+/*
+ * double calc_avg_force(Vecd& atom_force)
+ */
+ double OUTCAR::calc_avg_force(const Vecd& atom_force) {
+   return atom_force.sum() / atom_force.size();
+ }
+
+
+/*
+ * double calc_max_force(Vecd atom_force)
+ */
+ double OUTCAR::calc_max_force(const Vecd& atom_force) {
+   return atom_force.maxCoeff();
+ }
+
+
+/*
+ * IonIteration parse_iteration(VecStr& lines)
+ *  In: Lines start with "------------------ Iteration", 
+ *             ends with "    LOOP+"
+ * Out:
+ *  IonIteration structure
+ */
+ OUTCAR::IonIteration OUTCAR::parse_iteration(const VecStr& lines) {
+   static const string IT_START_PREFIX = 
+     "----------------------------------------- Iteration";
+   static const string IT_END_PREFIX = "     LOOP+";
+   if (!is_start_with(lines.front(), IT_START_PREFIX)) {
+     throw "Parse IonIteration failed:\n\tinput VecStr not start with \"----- Iteration\"";
+     return IonIteration{};
+   }
+   if (!is_start_with(lines.back(), IT_END_PREFIX)) {
+     throw "Parse IonIteration failed:\n\tinput VecStr not ends with \"    LOOP+ ....\"";
+     return IonIteration{};
+   }
+
+   this->tmpIteration = IonIteration{};
+   int i_line = 0;
+   const int end_of_lines = lines.size();
+   const int nions = this->_incar._NIONS;
+
+   for (; i_line < end_of_lines; ++i_line) {
+     if (is_start_with(lines[i_line], " VOLUME and BASIS")) {
+       parse_lattice_volume(lines[i_line + 3]);
+       
+       int latt_start  = i_line + 5;
+       int latt_end    = i_line + 8;
+       VecStr latt_lines {
+         lines.begin() + latt_start, lines.begin() + latt_end };
+       parse_lattice(latt_lines);
+
+       i_line += 8;
+       break;
+     }
+   }
+
+   for (; i_line < end_of_lines; ++i_line) {
+     if (is_start_with(lines[i_line], " POSITION")) {
+       VecStr pos_force_lines{
+         lines.begin() + i_line + 2, lines.begin() + i_line + 2 + nions};
+       parse_atom_force_pos(pos_force_lines);
+       i_line += 2 + nions;
+       break;
+     }
+   }
+
+   for (; i_line < end_of_lines; ++i_line) {
+     if (is_start_with(lines[i_line], "  energy  without"))  {
+       parse_toten(lines[i_line]);
+       ++i_line;
+       break;
+     }
+   }
+
+   for (; i_line < end_of_lines; ++i_line) {
+     if (is_start_with(lines[i_line], "    LOOP+")) {
+       parse_cpu_time(lines[i_line]);
+       break;
+     }
+   }
+   return this->tmpIteration;
+ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * VecIt parse_iteration_vec(VecStr& lines, int startline, int endline)
+ *  In: OUTCAR Iteration Part, start with "----- Iteration", ends with "     LOOP+:"
+ *  ----------
+ *  ["----------------------------------------- Iteration    1(   1)  ---------------------------------------",
+ *  ...
+ *  ...
+ *  END OF FILE]
+ *  ----------
+ * Out:
+ *  ----------
+ *  IonIteration Vector structure
+ *  ----------
+ */
+ const OUTCAR::VecIt& OUTCAR::parse_iteration_vec(const VecStr& lines,
+                                                  const int     startline,
+                                                        int     endline) {
+   endline = (-1 == endline) ? lines.size() : endline;
+   static const string IT_START_PREFIX = 
+     "----------------------------------------- Iteration";
+   static const string IT_END_PREFIX = "     LOOP+";
+   _iterationVec.clear();
+   _iterationVec.reserve(10);
+
+   this->_nIterations   =  0;
+   this->_nSteps        =  0;
+
+   int it_start, it_end;
+   bool is_in_iteration = false;
+   for (int i=startline; i < endline; ++i) {
+     if (!is_in_iteration and is_start_with(lines[i], IT_START_PREFIX)) {
+       it_start = i;
+       is_in_iteration = true;
+       continue;
+     }
+     if (is_in_iteration and is_start_with(lines[i], IT_END_PREFIX)) {
+       it_end = i + 1;
+       is_in_iteration = false;
+       VecStr iteration_lines(lines.begin() + it_start, lines.begin() + it_end);
+       _iterationVec.push_back(parse_iteration(iteration_lines));
+       continue;
+     }
+   }
+   return _iterationVec;
+ }
+
+
+
+
+
+
 
 
 
