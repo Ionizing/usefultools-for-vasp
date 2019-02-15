@@ -32,6 +32,11 @@ public:
 
 
 
+
+private:
+  const string& file_to_string(std::istream& is);
+  const VecStr& string_to_vecstr(const string& content);
+
 public:
   VecStr parseElems(const VecStr& lines, 
                     const string& content,
@@ -39,11 +44,10 @@ public:
                           int     endline   = -1);
 private:
   int    _nElems;
+  VecStr _Elems;
+
         VecStr  parse_elems(const VecStr& lines);
-  const string& file_to_string(std::istream& is);
-  const VecStr& string_to_vecstr(const string& content);
         VecStr  test_parse_elem(std::istream& is);
-        VecStr  _Elems;
 
 /*
  * Parse Lattice Vectors
@@ -111,34 +115,47 @@ private:
 public:
 
 private:
+  struct IonIteration{
+    int    _nSCF;
+    double _totalEnergy;
+    double _totalEnergy_sigma_0;      // free energy without entropy when sigma -> 0
+    double _cpuTime;
+    double _deltaE;
+    double _magmom;
+    double _volume;
+    double _totaltime;
+    double _average;
+    double _maxForce;
+    double _accuracy;
+    MatX3d _atom_forces_dirs;
+    MatX3d _atom_positions;
+    Matd   _atom_forces;
+    Mat33d _lattice_vector;
+  } tmpIteration;
+  using VecIt = std::vector<IonIteration>;
+  VecIt _iterationVec;
   int    _nIterations;
   int    _nSteps;
-  double _totalEnergy;
-  double _totalEnergy_sigma_0;      // free energy without entropy when sigma -> 0
   double _lastEnergy;
-  double _cpuTime;
-  double _deltaE;
-  double _magmom;
-  double _volume;
-  double _totaltime;
-  double _average;
-  double _maxForce;
-  double _accuracy;
-  MatX3d atom_forces_dirs;
-  MatX3d atom_positions;
-  Matd   atom_forces;
 
-        double parse_toten         (const string& line);
-        double calc_delta_toten    (const double toten, 
-                                    const double last_toten);
-        double parse_cpu_time      (const string& line);
-        double parse_magmom        (const string& lines);
-  const MatX3d& parse_atom_force    (const VecStr& lines);
-  const MatX3d& parse_atom_position (const VecStr& lines);
-  const Matd  & calc_atom_force     (const MatX3d& atom_force_dirs);
-        double calc_avg_force      (const Matd&   atom_force);
-        double calc_max_force       (const Matd&   atom_force);
-        double parse_lattice_volueme(const string& line);
+        double  parse_toten          (const string& line);
+        double  calc_delta_toten     (const double  toten, 
+                                      const double  last_toten);
+        double  parse_cpu_time       (const string& line);
+        double  parse_magmom         (const string& lines);
+        double  parse_lattice_volume (const string& line);
+  const Mat33d& parse_lattice        (const VecStr& lines);
+  const MatX3d& parse_atom_force_pos (const VecStr& lines);
+  const Matd  & calc_atom_force      (const MatX3d& atom_force_dirs);
+        double calc_avg_force        (const Matd&   atom_force);
+        double calc_max_force        (const Matd&   atom_force);
+  IonIteration parse_iteration       (const VecStr& lines,
+                                      const int     startline =  0,
+                                      const int     endline   = -1);
+  const VecIt & parse_iteration_vec  (const VecStr& lines,
+                                      const int     startline =  0,
+                                      const int     endline   = -1);
+
 
 
 /*

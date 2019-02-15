@@ -663,8 +663,257 @@ namespace ionizing {
     return _kpoints;
   }
 
+
+
+
+
+
+
+/*
+ * double parse_toten(const string& line)
+ *  read TOTEN into _totalEnergy and _totalEnergy_sigma_0;
+ *
+ *  In:
+ *  ----------
+ *  "  energy  without entropy=    -1059.00022771  energy(sigma->0) =    -1059.00022771"
+ *  ----------
+ * Out:
+ *  ----------
+ *  -1059.00022771
+ *  ----------
+ */
+  double OUTCAR::parse_toten(const string& line) {
+    double toten, toten_sigma_0;
+    int flag = sscanf(line.c_str(), "  energy  without entropy= %lf  energy(sigma->0) = %lf",
+        &toten, &toten_sigma_0);
+    if (flag != 2 or (toten > 0 or toten_sigma_0 > 0)) {
+      string str = string_printf("Parse TOTEN failed:\n\t%s\n\ttoten = %lf, toten_sigma_0 = %lf\n",
+          line.c_str(), toten, toten_sigma_0);
+      throw str;
+      return -1;
+    }
+    this->tmpIteration._totalEnergy         = toten;
+    this->tmpIteration._totalEnergy_sigma_0 = toten_sigma_0;
+    return this->tmpIteration._totalEnergy;
+  }
+
+/*
+ * double calc_delta_toten(double toten, double last_toten)
+ *  In:
+ *  ----------
+ *  -20, 0
+ *  ----------
+ * Out:
+ *  ----------
+ *  -20
+ *  ----------
+ */
+  double OUTCAR::calc_delta_toten(const double toten,
+      const double last_toten) {
+    return toten - last_toten;
+  }
+
+
+/*
+ * double parse_cpu_time(const string& line)
+ *  In:
+ * ----------
+ *  "     LOOP+:  cpu time  428.5440: real time  468.0720"
+ * ----------
+ * Out:
+ * ----------
+ *  428.5440
+ * ----------
+ */
+  double OUTCAR::parse_cpu_time(const string& line) {
+    double cpu_time;
+    int flag = sscanf(line.c_str(), "     LOOP+:  cpu time %lf", &cpu_time);
+    if (1 != flag or cpu_time > 0) {
+      string str = string_printf("Parse cpu time failed:\n\t%s\n\tcpu_time = %lf sec",
+          line.c_str(), cpu_time);
+      throw str;
+      return -1;
+    }
+    return this->tmpIteration._cpuTime = cpu_time;
+  }
+
+
+/*
+ * double parse_magmom(string& line)
+ *  In:
+ *  ----------
+ *  " number of electron     310.0000000 magnetization      75.0000000"
+ *  ----------
+ * Out:
+ *  ----------
+ *  75.0
+ *  ----------
+ */
+  double OUTCAR::parse_magmom(const string& line) {
+    double magmom;
+    int flag = sscanf(line.c_str(), " number of electron %*lf magnetization %lf",
+        &magmom);
+    if (1 != flag or magmom < 0) {
+      string str = string_printf("Parse magmom failed:\n\t%s\n\tmagmom = %lf\n",
+          line.c_str(), magmom);
+      throw str;
+      return -1;
+    }
+    return this->tmpIteration._magmom = magmom;
+  }
+
+
+/*
+ * double parse_lattice_volume(string& line)
+ *  In:
+ *  -----------
+ *  "  volume of cell :      425.26"
+ *  -----------
+ * Out:
+ *  -----------
+ *  425.26
+ *  -----------
+ */
+  double OUTCAR::parse_lattice_volume(const string& line) {
+    double volume;
+    int flag = sscanf(line.c_str(), "  volume of cell : %lf", &volume);
+    if (1 != flag or volume < 0) {
+      string str = string_printf("Parse cell volume failed:\n\t%s\n\tvolume = %lf\n", line.c_str(), volume);
+      throw str;
+      return -1;
+    }
+    return this->tmpIteration._volume = volume;
+  }
+
+/*
+ * Mat33d parse_lattice(VecStr& lines)
+ *  In:
+ * ----------
+ * ["     7.519999981  0.000000000  0.000000000     0.132978724  0.000000000  0.000000000",
+ *  "     0.000000000  7.519999981  0.000000000     0.000000000  0.132978724  0.000000000",
+ *  "     0.000000000  0.000000000  7.519999981     0.000000000  0.000000000  0.132978724"]
+ * ----------
+ * Out:
+ * ----------
+ * [[7.519999981, 0.000000000, 0.000000000],
+ *  [0.000000000, 7.519999981, 0.000000000],
+ *  [0.000000000, 0.000000000, 7.519999981]]
+ * ----------
+ */
+  const Mat33d& OUTCAR::parse_lattice(const VecStr& lines) {
+    Mat33d out;
+    if (3 != lines.size()) {
+      throw "Parse Lattice in Iteration failed:\n\tinput lines quantity != 3";
+      return this->tmpIteration._lattice_vector;
+    }
+    for (int i=0; i!=3; ++i) {
+      int flag = sscanf(lines[i].c_str(), "%lf %lf %lf",
+          &out(i, 0), &out(i, 1), &out(i, 2));
+      if (3 != flag) {
+        string str = string_printf("Parse Lattice in Iteration failed: Invalid string to parse\n\t%s\n", lines[i].c_str());
+        return this->tmpIteration._lattice_vector;
+      }
+    }
+    this->tmpIteration._lattice_vector = std::move(out);
+    return this->tmpIteration._lattice_vector;
+  }
   
 
+/*
+ * MatX3d& parse_atom_force_pos(VecStr& lines)
+ *  In:
+ * ----------
+ *["     0.52935      0.52935      0.52935         0.000716      0.000716      0.000716",
+ * "     6.96491      3.21778      4.27649        -0.000716     -0.000716      0.000716",
+ * "     3.21778      4.27649      6.96491        -0.000716      0.000716     -0.000716",
+ * "     4.27649      6.96491      3.21778         0.000716     -0.000716     -0.000716",
+ * "     6.15005      2.40292      5.09135         0.000716      0.000716     -0.000716",
+ * "     1.34421      1.34421      1.34421        -0.000716     -0.000716     -0.000716",
+ * "     2.40292      5.09135      6.15005         0.000716     -0.000716      0.000716",
+ * "     5.09135      6.15005      2.40292        -0.000716      0.000716      0.000716",
+ * "     2.40292      6.15005      5.09135         0.000716      0.000716     -0.000716",
+ * "     6.15005      5.09135      2.40292         0.000716     -0.000716      0.000716",
+ * "     5.09135      2.40292      6.15005        -0.000716      0.000716      0.000716",
+ * "     3.21778      6.96491      4.27649        -0.000716     -0.000716      0.000716",
+ * "     6.96491      4.27649      3.21778        -0.000716      0.000716     -0.000716",
+ * "     4.27649      3.21778      6.96491         0.000716     -0.000716     -0.000716",
+ * "     0.52935      4.27649      4.27649         0.000716      0.000716      0.000716",
+ * "     6.96491      6.96491      0.52935        -0.000716     -0.000716      0.000716",
+ * "     3.21778      0.52935      3.21778        -0.000716      0.000716     -0.000716",
+ * "     6.15005      6.15005      1.34421         0.000716      0.000716     -0.000716",
+ * "     1.34421      5.09135      5.09135        -0.000716     -0.000716     -0.000716",
+ * "     2.40292      1.34421      2.40292         0.000716     -0.000716      0.000716",
+ * "     2.40292      2.40292      1.34421         0.000716      0.000716     -0.000716",
+ * "     6.15005      1.34421      6.15005         0.000716     -0.000716      0.000716",
+ * "     3.21778      3.21778      0.52935        -0.000716     -0.000716      0.000716",
+ * "     6.96491      0.52935      6.96491        -0.000716      0.000716     -0.000716",
+ * "     4.27649      0.52935      4.27649         0.000716      0.000716      0.000716",
+ * "     0.52935      6.96491      6.96491         0.000716     -0.000716     -0.000716",
+ * "     5.09135      1.34421      5.09135        -0.000716     -0.000716     -0.000716",
+ * "     1.34421      6.15005      6.15005        -0.000716      0.000716      0.000716",
+ * "     1.34421      2.40292      2.40292        -0.000716      0.000716      0.000716",
+ * "     0.52935      3.21778      3.21778         0.000716     -0.000716     -0.000716",
+ * "     4.27649      4.27649      0.52935         0.000716      0.000716      0.000716",
+ * "     5.09135      5.09135      1.34421        -0.000716     -0.000716     -0.000716"]
+ * ----------
+ * Out:
+ * ----------
+ *  Positions:
+ * [[ 0.52935, 0.52935, 0.52935], [ 6.96491, 3.21778, 4.27649],
+ *  [ 3.21778, 4.27649, 6.96491], [ 4.27649, 6.96491, 3.21778],
+ *  [ 6.15005, 2.40292, 5.09135], [ 1.34421, 1.34421, 1.34421],
+ *  [ 2.40292, 5.09135, 6.15005], [ 5.09135, 6.15005, 2.40292],
+ *  [ 2.40292, 6.15005, 5.09135], [ 6.15005, 5.09135, 2.40292],
+ *  [ 5.09135, 2.40292, 6.15005], [ 3.21778, 6.96491, 4.27649],
+ *  [ 6.96491, 4.27649, 3.21778], [ 4.27649, 3.21778, 6.96491],
+ *  [ 0.52935, 4.27649, 4.27649], [ 6.96491, 6.96491, 0.52935],
+ *  [ 3.21778, 0.52935, 3.21778], [ 6.15005, 6.15005, 1.34421],
+ *  [ 1.34421, 5.09135, 5.09135], [ 2.40292, 1.34421, 2.40292],
+ *  [ 2.40292, 2.40292, 1.34421], [ 6.15005, 1.34421, 6.15005],
+ *  [ 3.21778, 3.21778, 0.52935], [ 6.96491, 0.52935, 6.96491],
+ *  [ 4.27649, 0.52935, 4.27649], [ 0.52935, 6.96491, 6.96491],
+ *  [ 5.09135, 1.34421, 5.09135], [ 1.34421, 6.15005, 6.15005],
+ *  [ 1.34421, 2.40292, 2.40292], [ 0.52935, 3.21778, 3.21778],
+ *  [ 4.27649, 4.27649, 0.52935], [ 5.09135, 5.09135, 1.34421]]
+ *  Forces: (RETURNS THIS)
+ * [[  0.000716,  0.000716,  0.000716], [ -0.000716, -0.000716,  0.000716],
+ *  [ -0.000716,  0.000716, -0.000716], [  0.000716, -0.000716, -0.000716],
+ *  [  0.000716,  0.000716, -0.000716], [ -0.000716, -0.000716, -0.000716],
+ *  [  0.000716, -0.000716,  0.000716], [ -0.000716,  0.000716,  0.000716],
+ *  [  0.000716,  0.000716, -0.000716], [  0.000716, -0.000716,  0.000716],
+ *  [ -0.000716,  0.000716,  0.000716], [ -0.000716, -0.000716,  0.000716],
+ *  [ -0.000716,  0.000716, -0.000716], [  0.000716, -0.000716, -0.000716],
+ *  [  0.000716,  0.000716,  0.000716], [ -0.000716, -0.000716,  0.000716],
+ *  [ -0.000716,  0.000716, -0.000716], [  0.000716,  0.000716, -0.000716],
+ *  [ -0.000716, -0.000716, -0.000716], [  0.000716, -0.000716,  0.000716],
+ *  [  0.000716,  0.000716, -0.000716], [  0.000716, -0.000716,  0.000716],
+ *  [ -0.000716, -0.000716,  0.000716], [ -0.000716,  0.000716, -0.000716],
+ *  [  0.000716,  0.000716,  0.000716], [  0.000716, -0.000716, -0.000716],
+ *  [ -0.000716, -0.000716, -0.000716], [ -0.000716,  0.000716,  0.000716],
+ *  [ -0.000716,  0.000716,  0.000716], [  0.000716, -0.000716, -0.000716],
+ *  [  0.000716,  0.000716,  0.000716], [ -0.000716, -0.000716, -0.000716]]
+ * ----------
+ */
+ const MatX3d& OUTCAR::parse_atom_force_pos(const VecStr& lines) {
+   if (lines.size() != this->_incar._NIONS) {
+     string str = string_printf("Parse Iteration's atom position & forces failed:\n\tlines.size() = %3d, NIONS = %3d\n",
+        static_cast<int>(lines.size()), this->_incar._NIONS);
+     throw str;
+     return this->tmpIteration._atom_forces;
+   }
+   MatX3d tmppos, tmpforce;
+   tmppos.resize(lines.size(), 3);
+   tmpforce.resize(lines.size(), 3);
+   for (size_t i=0; i!=lines.size(); ++i) {
+     sscanf(lines[i].c_str(), "%lf %lf %lf %lf %lf %lf",
+         &tmppos(i, 0), &tmppos(i, 1), &tmppos(i, 2), 
+         &tmpforce(i, 0), &tmpforce(i, 1), &tmpforce(i, 2));
+   }
+
+   return this->tmpIteration._atom_forces;
+ }
+   
+   
 
 
 
