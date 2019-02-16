@@ -712,7 +712,7 @@ namespace ionizing {
   double OUTCAR::parse_cpu_time(const string& line) {
     double cpu_time;
     int flag = sscanf(line.c_str(), "     LOOP+:  cpu time %lf", &cpu_time);
-    if (1 != flag or cpu_time > 0) {
+    if (1 != flag or cpu_time < 0) {
       string str = string_printf("Parse cpu time failed:\n\t%s\n\tcpu_time = %lf sec",
           line.c_str(), cpu_time);
       throw str;
@@ -920,7 +920,7 @@ namespace ionizing {
  *                        ...]
  * ----------
  */
- inline const Vecd& OUTCAR::calc_atom_force(const MatX3d& atom_force_dirs) {
+ const Vecd& OUTCAR::calc_atom_force(const MatX3d& atom_force_dirs) {
    Vecd out;
    out.resize(atom_force_dirs.rows());
    for (int i=0; i!=atom_force_dirs.rows(); ++i) {

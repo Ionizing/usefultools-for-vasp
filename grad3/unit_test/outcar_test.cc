@@ -360,16 +360,44 @@ TEST_CASE("Parse Iteration") {
         "     6.96491      3.21778      4.27649        -0.000716     -0.000716      0.000716",
         "     3.21778      4.27649      6.96491        -0.000716      0.000716     -0.000716",
         "     4.27649      6.96491      3.21778         0.000716     -0.000716     -0.000716"};
-    MatX3d forcepos_res;
-    forcepos_res.resize(4, 3);
-    forcepos_res <<  0.000716,  0.000716,  0.000716,
-                    -0.000716, -0.000716,  0.000716,
-                    -0.000716,  0.000716, -0.000716,
-                     0.000716, -0.000716, -0.000716;
+    MatX3d force_res;
+    force_res.resize(4, 3);
+    force_res <<  0.000716,  0.000716,  0.000716,
+                 -0.000716, -0.000716,  0.000716,
+                 -0.000716,  0.000716, -0.000716,
+                  0.000716, -0.000716, -0.000716;
 
     REQUIRE_THROWS(outcar.parse_atom_force_pos(forcepos_vec));
     outcar._incar._NIONS = 4;
-    REQUIRE(forcepos_res == outcar.parse_atom_force_pos(forcepos_vec));
+    REQUIRE(force_res == outcar.parse_atom_force_pos(forcepos_vec));
   }
 
+  WHEN("parse_toten") {
+    const char* toten_str = "  energy  without entropy=    -1059.00022771  energy(sigma->0) =    -1059.00022771";
+    const char* toten_err = "energy  without entropy=    -1059.00022771  energy(sigma->0) =    -1059.00022771";
+    REQUIRE(-1059.00022771 == outcar.parse_toten(toten_str));
+    REQUIRE(-1059.00022771 == outcar.tmpIteration._totalEnergy_sigma_0);
+    REQUIRE(outcar.parse_toten(toten_err));
+  }
+
+  WHEN("parse_cpu_time") {
+    const char* cputime_str = "     LOOP+:  cpu time  428.5440: real time  468.0720";
+    const char* cputime_err = "     LOOP+:  cpu tim  428.5440: real time  468.0720";
+    REQUIRE(428.5440 == outcar.parse_cpu_time(cputime_str));
+    REQUIRE_THROWS(outcar.parse_cpu_time(cputime_err));
+  }
+
+  WHEN("calc_atom_force") {
+    Mat33d atom_force_dirs;
+    atom_force_dirs << 1, 2, 3,
+                       4, 5, 6,
+                       7, 8, 9;
+    Vecd atom_force_res;
+    atom_force_res.resize(3);
+    for (long i=0 ;i!=atom_force_dirs.rows(); ++i) {
+      atom_force_res(i) = atom_force_dirs.row(i).norm();
+    }
+
+    REQUIRE(atom_force_res == outcar.calc_atom_force(atom_force_dirs));
+  }
 }
