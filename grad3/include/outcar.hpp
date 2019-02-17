@@ -34,16 +34,17 @@ private:
  * Parse type of Pseudo Potentials
  */
 public:
-  VecStr parseElems(const VecStr& lines, 
-                    const string& content,
+  const VecStr& parseElems(const VecStr& lines, 
+                    // const string& content,
                     const int     startline =  0,
                           int     endline   = -1);
 private:
   int    _nElems;
   VecStr _Elems;
-
-        VecStr  parse_elems(const VecStr& lines);
-        VecStr  test_parse_elem(std::istream& is);
+  std::vector<int> 
+          _atomsPerElem;
+  VecStr  parse_elems(const VecStr& lines);
+  VecStr  test_parse_elem(std::istream& is);
 
 /*
  * Parse Lattice Vectors
@@ -172,6 +173,14 @@ private:
 
   const Vecd  & calc_atom_force      (const MatX3d& atom_force_dirs);
 
+
+public:
+  bool saveAsMolden(  const VecIt     it_vec,
+                      const char*     file_name =  "animate.molden",
+                      const int       skip      =  0);
+
+
+
 /*
  * public:
  * // POSCAR info without selective dynamics
@@ -196,10 +205,6 @@ private:
   
 // INCAR involved parameters
   int __current_line;
-
-
-
-private:
 
 };
 

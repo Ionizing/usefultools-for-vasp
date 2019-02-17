@@ -9,7 +9,7 @@ namespace ionizing {
   VecStr OUTCAR::test_parse_elem(std::istream& is) {
     file_to_string(is);
     string_to_vecstr(_content);
-    return parseElems(_contentVector, _content);
+    return parseElems(_contentVector);
   }
 
 
@@ -67,7 +67,7 @@ namespace ionizing {
  *  "H"
  *  ---------
  */
-  VecStr OUTCAR::parse_elems(const VecStr& lines) {
+ VecStr OUTCAR::parse_elems(const VecStr& lines) {
     VecStr out;
     for (string e : lines) {
       if (!is_start_with(e, "   VRHFIN =")) {
@@ -76,12 +76,6 @@ namespace ionizing {
       e.erase(0, 11);
       e.erase(e.find_first_of(':'), string::npos);
       out.emplace_back(std::move(e));
-      /*
-       * string token = split(e)[1];
-       * token.pop_back();
-       * token.erase(0, 1); // erase 1 element from index 0
-       * out.emplace_back(std::move(token));
-       */
     }
     return out;
   }
@@ -92,12 +86,19 @@ namespace ionizing {
  *  in: OUTCAR content in VecStr(lines) and one string(content)
  * out: String Vector of element names;
  */
-  VecStr OUTCAR::parseElems(const VecStr& lines, 
-                            const string& content,
-                            const int     startline,
-                                  int     endline) {
+  const VecStr& OUTCAR::parseElems(const VecStr& lines, 
+                                   // const string& content,
+                                   const int     startline,
+                                         int     endline) {
     endline = (endline < 0) ? lines.size() : endline;
-    _nElems = count_substr(content, "   VRHFIN =");
+    // _nElems = count_substr(content, "   VRHFIN =");
+
+    for (int i=startline; i!=endline; ++i) {
+      if (is_start_with(lines[i], "   ions per type")) {
+         _nElems = split(lines[i]).size() - 4;
+      }
+    }
+
     VecStr lines_to_use;
 
     int cnt = 0;
@@ -107,12 +108,12 @@ namespace ionizing {
         ++cnt;
       }
       if (cnt == _nElems) {
-        break;
         __current_line = i;
+        break;
       } else /**/ ;
     }
 
-    return parse_elems(lines_to_use);
+    return _Elems = parse_elems(lines_to_use);
   }
   
 /*
@@ -1099,6 +1100,25 @@ namespace ionizing {
    }
    return _iterationVec;
  }
+
+
+/*
+ * bool saveAsMolden(IonIteration it_vec, char* file_name, int skip)
+ * Save IonIte
+ */
+/*
+ *  bool OUTCAR::saveAsMolden(  const VecIt  it_vec,
+ *                              const char*  file_name,
+ *                              const int    skip) {
+ * 
+ *  }
+ */
+
+
+
+
+
+
 
 
 } // namepsace ionizing
