@@ -136,6 +136,22 @@ private:
       _atom_forces        {  },
       _lattice_vector     {  } {}
 
+    bool operator==(const IonIteration& rhs) const {
+      return ((this->_nSCF                == rhs._nSCF               ) and
+              (this->_totalEnergy         == rhs._totalEnergy        ) and
+              (this->_totalEnergy_sigma_0 == rhs._totalEnergy_sigma_0) and
+              (this->_cpuTime             == rhs._cpuTime            ) and
+              (this->_deltaE              == rhs._deltaE             ) and
+              (this->_magmom              == rhs._magmom             ) and
+              (this->_volume              == rhs._volume             ) and
+              (this->_averageF            == rhs._averageF           ) and
+              (this->_maxForce            == rhs._maxForce           ) and
+              (this->_atom_forces_dirs    == rhs._atom_forces_dirs   ) and
+              (this->_atom_positions      == rhs._atom_positions     ) and
+              (this->_atom_forces         == rhs._atom_forces        ) and
+              (this->_lattice_vector      == rhs._lattice_vector     ) );
+    }
+
   } tmpIteration;
   using VecIt = std::vector<IonIteration>;
   VecIt _iterationVec;

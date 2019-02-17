@@ -734,10 +734,16 @@ namespace ionizing {
  *  ----------
  */
   double OUTCAR::parse_magmom(const string& line) {
+    if (2 != this->_incar._ISPIN) {
+      string str = string_printf("Parse magmom failed:\n\tWrong ISPIN in INCAR: ISPIN = %2d\n\tCorrect ISPIN = 2\n", this->_incar._ISPIN);
+      throw str;
+      return .0;
+    }
+
     double magmom;
     int flag = sscanf(line.c_str(), " number of electron %*lf magnetization %lf",
         &magmom);
-    if (1 != flag or magmom < 0) {
+    if (1 != flag) {
       string str = string_printf("Parse magmom failed:\n\t%s\n\tmagmom = %lf\n",
           line.c_str(), magmom);
       throw str;
@@ -940,9 +946,17 @@ namespace ionizing {
  OUTCAR::IonIteration OUTCAR::parse_iteration(const VecStr& lines) {
    static const string IT_START_PREFIX = 
      "----------------------------------------- Iteration";
+   static const string IT_START_PREFIX_2 = 
+     "--------------------------------------- Iteration";
+
    static const string IT_END_PREFIX = "     LOOP+";
-   if (!is_start_with(lines.front(), IT_START_PREFIX)) {
-     throw "Parse IonIteration failed:\n\tinput VecStr not start with \"----- Iteration\"";
+   if (!is_start_with(lines.front(), IT_START_PREFIX) and
+       !is_start_with(lines.front(), IT_START_PREFIX_2)) {
+     string str = string_printf(
+"Parse IonIteration failed:\n\
+\tinput VecStr not started with \"----- Iteration\":\n\
+\t%s\n", lines.front().c_str());
+     throw str;
      return IonIteration{};
    }
    if (!is_start_with(lines.back(), IT_END_PREFIX)) {
@@ -955,7 +969,12 @@ namespace ionizing {
    const int end_of_lines = lines.size();
    const int nions = this->_incar._NIONS;
 
+   int parsed_parts = 0;
+
    for (; i_line < end_of_lines; ++i_line) {
+     if (2 != this->_incar._ISPIN) {
+       break;
+     }
      if (is_start_with(lines[i_line], " number of electron")) {
        this->tmpIteration._nSCF += 1;
        parse_magmom(lines[i_line]);
@@ -977,6 +996,7 @@ namespace ionizing {
          lines.begin() + latt_start, lines.begin() + latt_end };
        parse_lattice(latt_lines);
 
+       ++parsed_parts;
        i_line += 8;
        break;
      }
@@ -988,6 +1008,8 @@ namespace ionizing {
          lines.begin() + i_line + 2, lines.begin() + i_line + 2 + nions};
        parse_atom_force_pos(pos_force_lines);
        i_line += 2 + nions;
+
+       ++parsed_parts;
        break;
      }
    }
@@ -995,16 +1017,26 @@ namespace ionizing {
    for (; i_line < end_of_lines; ++i_line) {
      if (is_start_with(lines[i_line], "  energy  without"))  {
        parse_toten(lines[i_line]);
+
+       ++parsed_parts;
        ++i_line;
        break;
      }
    }
 
    for (; i_line < end_of_lines; ++i_line) {
-     if (is_start_with(lines[i_line], "    LOOP+")) {
+     if (is_start_with(lines[i_line], "     LOOP+")) {
        parse_cpu_time(lines[i_line]);
+
+       ++parsed_parts;
        break;
      }
+   }
+
+// For DEBUG use only
+   if (4 != parsed_parts) {
+     string str = string_printf("Parse Iteration result not complete:\n\t%2d/%2d parsed.\n",
+         parsed_parts, 4);
    }
 
    calc_atom_force(this->tmpIteration._atom_forces_dirs);

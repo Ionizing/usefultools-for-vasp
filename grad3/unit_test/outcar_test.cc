@@ -1,5 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #define UNIT_TEST
+// #define OUTCAR_DEBUG
 
 #include <outcar.hpp>
 #include <catch.hpp>
@@ -321,13 +322,12 @@ TEST_CASE("INCAR Parameters in OUTCAR") {
 
 
 TEST_CASE("Parse Iteration") {
-  std::ifstream ifs("./unit_test/test2/OUTCAR");
-  string content        = outcar.file_to_string(ifs);
-  VecStr contentVector  = outcar.string_to_vecstr(content);
 
   WHEN("parse_magmom") {
     const char* magmom_str = " number of electron    1026.0000000 magnetization     135.0000000";
     const char* magmom_err = " number of electron    1026.0000000 magnetization";
+    REQUIRE_THROWS(outcar.parse_magmom(magmom_str));
+    outcar._incar._ISPIN = 2;
     REQUIRE(135.00 == outcar.parse_magmom(magmom_str));
     REQUIRE(135.00 == outcar.tmpIteration._magmom);
     REQUIRE_THROWS(outcar.parse_magmom(magmom_err));
@@ -384,6 +384,7 @@ TEST_CASE("Parse Iteration") {
     const char* cputime_str = "     LOOP+:  cpu time  428.5440: real time  468.0720";
     const char* cputime_err = "     LOOP+:  cpu tim  428.5440: real time  468.0720";
     REQUIRE(428.5440 == outcar.parse_cpu_time(cputime_str));
+    REQUIRE(428.5440 == outcar.tmpIteration._cpuTime);
     REQUIRE_THROWS(outcar.parse_cpu_time(cputime_err));
   }
 
@@ -399,5 +400,44 @@ TEST_CASE("Parse Iteration") {
     }
 
     REQUIRE(atom_force_res == outcar.calc_atom_force(atom_force_dirs));
+  }
+
+  std::ifstream ifs("./unit_test/test6/OUTCAR");
+  string content        = outcar.file_to_string(ifs);
+  VecStr contentVector  = outcar.string_to_vecstr(content);
+
+  WHEN("parse_iteration") {
+    int it_begin  = 0;
+    int it_end    = contentVector.size();
+    static const string IT_START_PREFIX = 
+      "--------------------------------------- Iteration";
+    static const string IT_END_PREFIX   = "     LOOP+";
+
+    for (size_t i=0; i!=contentVector.size(); ++i) {
+      if (is_start_with(contentVector[i], IT_START_PREFIX)) {
+        it_begin = i;
+        continue;
+      } else if (is_start_with(contentVector[i], IT_END_PREFIX)) {
+        it_end   = i + 1;
+        break;
+      } else {}
+    }
+
+    VecStr it_lines {
+      contentVector.begin() + it_begin, contentVector.begin() + it_end };
+
+    /*
+     * outcar._incar._ISPIN = 1;
+     * REQUIRE_THROWS(outcar.parse_iteration(it_lines));
+     */
+    outcar._incar._NIONS = 135;
+    outcar._incar._ISPIN = 2;
+    OUTCAR::IonIteration iteration;
+    REQUIRE_NOTHROW(iteration = outcar.parse_iteration(it_lines));
+    REQUIRE( -1059.00022771 == iteration._deltaE);
+    REQUIRE(    -0.0000203  == iteration._magmom);
+    REQUIRE(  4553.41       == iteration._volume);
+    REQUIRE(  2094.2404     == iteration._cpuTime);
+    REQUIRE( -1059.00022771 == iteration._totalEnergy);
   }
 }
