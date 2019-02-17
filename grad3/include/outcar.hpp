@@ -104,8 +104,6 @@ private:
  * Parse Ion Iterations
  */
 public:
-
-private:
   struct IonIteration{
     int    _nSCF;
     double _totalEnergy;
@@ -137,32 +135,34 @@ private:
       _lattice_vector     {  } {}
 
     bool operator==(const IonIteration& rhs) const {
-      return ((this->_nSCF                == rhs._nSCF               ) and
-              (this->_totalEnergy         == rhs._totalEnergy        ) and
-              (this->_totalEnergy_sigma_0 == rhs._totalEnergy_sigma_0) and
-              (this->_cpuTime             == rhs._cpuTime            ) and
-              (this->_deltaE              == rhs._deltaE             ) and
-              (this->_magmom              == rhs._magmom             ) and
-              (this->_volume              == rhs._volume             ) and
-              (this->_averageF            == rhs._averageF           ) and
-              (this->_maxForce            == rhs._maxForce           ) and
-              (this->_atom_forces_dirs    == rhs._atom_forces_dirs   ) and
-              (this->_atom_positions      == rhs._atom_positions     ) and
-              (this->_atom_forces         == rhs._atom_forces        ) and
-              (this->_lattice_vector      == rhs._lattice_vector     ) );
+      return (
+        (this->_nSCF                == rhs._nSCF               ) and
+        (this->_totalEnergy         == rhs._totalEnergy        ) and
+        (this->_totalEnergy_sigma_0 == rhs._totalEnergy_sigma_0) and
+        (this->_cpuTime             == rhs._cpuTime            ) and
+        (this->_deltaE              == rhs._deltaE             ) and
+        (this->_magmom              == rhs._magmom             ) and
+        (this->_volume              == rhs._volume             ) and
+        (this->_averageF            == rhs._averageF           ) and
+        (this->_maxForce            == rhs._maxForce           ) and
+        (this->_atom_forces_dirs    == rhs._atom_forces_dirs   ) and
+        (this->_atom_positions      == rhs._atom_positions     ) and
+        (this->_atom_forces         == rhs._atom_forces        ) and
+        (this->_lattice_vector      == rhs._lattice_vector     ) );
     }
-
-  } tmpIteration;
+  };
   using VecIt = std::vector<IonIteration>;
+  const VecIt & parse_iteration_vec  (const VecStr& lines,
+                                      const int     startline =  0,
+                                            int     endline   = -1);
+private:
+  IonIteration tmpIteration;
   VecIt _iterationVec;
   int    _nIterations;
   int    _nSteps;
   double _lastEnergy;
 
   IonIteration  parse_iteration      (const VecStr& lines);
-  const VecIt & parse_iteration_vec  (const VecStr& lines,
-                                      const int     startline =  0,
-                                            int     endline   = -1);
         double  parse_magmom         (const string& lines);
         double  parse_lattice_volume (const string& line);
   const Mat33d& parse_lattice        (const VecStr& lines);

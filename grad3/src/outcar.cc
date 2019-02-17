@@ -1068,6 +1068,8 @@ namespace ionizing {
    endline = (-1 == endline) ? lines.size() : endline;
    static const string IT_START_PREFIX = 
      "----------------------------------------- Iteration";
+   static const string IT_START_PREFIX_2 = 
+     "--------------------------------------- Iteration";
    static const string IT_END_PREFIX = "     LOOP+";
    _iterationVec.clear();
    _iterationVec.reserve(10);
@@ -1079,7 +1081,9 @@ namespace ionizing {
    int it_start, it_end;
    bool is_in_iteration = false;
    for (int i=startline; i < endline; ++i) {
-     if (!is_in_iteration and is_start_with(lines[i], IT_START_PREFIX)) {
+     if (!is_in_iteration and 
+         (is_start_with(lines[i], IT_START_PREFIX) or 
+          is_start_with(lines[i], IT_START_PREFIX_2))) {
        it_start = i;
        is_in_iteration = true;
        continue;

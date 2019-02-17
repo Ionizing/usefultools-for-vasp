@@ -440,4 +440,15 @@ TEST_CASE("Parse Iteration") {
     REQUIRE(  2094.2404     == iteration._cpuTime);
     REQUIRE( -1059.00022771 == iteration._totalEnergy);
   }
+
+  WHEN("parse_iteration_vec") {
+    OUTCAR::VecIt it_vec_result;
+    outcar._incar._NIONS = 135;
+    outcar._incar._ISPIN = 2;
+    REQUIRE_NOTHROW(it_vec_result = outcar.parse_iteration_vec(contentVector));
+    REQUIRE(17 == it_vec_result.size());
+
+    REQUIRE(it_vec_result.back()._cpuTime == 428.5440);
+    REQUIRE(it_vec_result.back()._totalEnergy == -1062.01695778);
+  }
 }
