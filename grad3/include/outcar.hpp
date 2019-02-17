@@ -35,7 +35,6 @@ private:
  */
 public:
   const VecStr& parseElems(const VecStr& lines, 
-                    // const string& content,
                     const int     startline =  0,
                           int     endline   = -1);
 private:
@@ -44,7 +43,6 @@ private:
   std::vector<int> 
           _atomsPerElem;
   VecStr  parse_elems(const VecStr& lines);
-  VecStr  test_parse_elem(std::istream& is);
 
 /*
  * Parse Lattice Vectors

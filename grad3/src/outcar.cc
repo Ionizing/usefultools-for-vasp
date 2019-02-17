@@ -1,18 +1,6 @@
 #include <outcar.hpp>
 
 namespace ionizing {
-
-
-/*
- * TEST func
- */
-  VecStr OUTCAR::test_parse_elem(std::istream& is) {
-    file_to_string(is);
-    string_to_vecstr(_content);
-    return parseElems(_contentVector);
-  }
-
-
 /*
  * string read_to_string(std::istream& is)
  *  in: std::ifstream of OUTCAR
@@ -85,21 +73,26 @@ namespace ionizing {
  * void parsElems(VecStr lines, string content)
  *  in: OUTCAR content in VecStr(lines) and one string(content)
  * out: String Vector of element names;
+ *
+ * Modifies _atomsPerElem with ions per type;
  */
   const VecStr& OUTCAR::parseElems(const VecStr& lines, 
-                                   // const string& content,
                                    const int     startline,
                                          int     endline) {
     endline = (endline < 0) ? lines.size() : endline;
-    // _nElems = count_substr(content, "   VRHFIN =");
-
+    VecStr lines_to_use;
     for (int i=startline; i!=endline; ++i) {
       if (is_start_with(lines[i], "   ions per type")) {
-         _nElems = split(lines[i]).size() - 4;
-      }
+         VecStr str_vec = split(lines[i]);
+         _nElems = str_vec.size() - 4;
+         _atomsPerElem.resize(_nElems, 0);
+         for (int j=0; j!=_nElems; ++j) {
+           _atomsPerElem[j] = std::atoi(str_vec[j + 4].c_str());
+         }
+         break;
+      } else {  }
     }
 
-    VecStr lines_to_use;
 
     int cnt = 0;
     for (int i=startline; i!=endline; ++i) {

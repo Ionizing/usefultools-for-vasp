@@ -64,8 +64,13 @@ TEST_CASE("Read OUTCAR to one string and VecStr") {
   WHEN("from raw file") {
     std::ifstream ifs2("./unit_test/test3/OUTCAR");
     VecStr elem_name { "Cu", "C", "H" };
+    std::vector<int> ions_per_type {100, 2, 2};
 
-    REQUIRE(outcar.test_parse_elem(ifs2) == elem_name);
+    string content        = outcar.file_to_string(ifs2);
+    VecStr contentVector  = outcar.string_to_vecstr(content);
+
+    REQUIRE(outcar.parseElems(contentVector) == elem_name);
+    REQUIRE(outcar._atomsPerElem             == ions_per_type);
   }
 }
 
