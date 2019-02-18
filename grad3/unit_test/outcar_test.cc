@@ -419,7 +419,7 @@ TEST_CASE("Parse Iteration") {
     static const string IT_END_PREFIX   = "     LOOP+";
 
     for (size_t i=0; i!=contentVector.size(); ++i) {
-      if (is_start_with(contentVector[i], IT_START_PREFIX)) {
+      if (0 == it_begin and is_start_with(contentVector[i], IT_START_PREFIX)) {
         it_begin = i;
         continue;
       } else if (is_start_with(contentVector[i], IT_END_PREFIX)) {
@@ -431,19 +431,18 @@ TEST_CASE("Parse Iteration") {
     VecStr it_lines {
       contentVector.begin() + it_begin, contentVector.begin() + it_end };
 
-    /*
-     * outcar._incar._ISPIN = 1;
-     * REQUIRE_THROWS(outcar.parse_iteration(it_lines));
-     */
+    REQUIRE(it_lines.size() == 7791);
+
     outcar._incar._NIONS = 135;
     outcar._incar._ISPIN = 2;
     OUTCAR::IonIteration iteration;
     REQUIRE_NOTHROW(iteration = outcar.parse_iteration(it_lines));
-    REQUIRE( -1059.00022771 == iteration._deltaE);
     REQUIRE(    -0.0000203  == iteration._magmom);
     REQUIRE(  4553.41       == iteration._volume);
     REQUIRE(  2094.2404     == iteration._cpuTime);
     REQUIRE( -1059.00022771 == iteration._totalEnergy);
+    REQUIRE(       36       == iteration._nSCF);
+    REQUIRE( -1059.00022771 == iteration._deltaE);
   }
 
   WHEN("parse_iteration_vec") {
@@ -457,12 +456,23 @@ TEST_CASE("Parse Iteration") {
     REQUIRE(it_vec_result.back()._totalEnergy == -1062.01695778);
   }
 
+  outcar.parseElems(contentVector);
+  OUTCAR::VecIt it_vec = outcar.parse_iteration_vec(contentVector);
   WHEN("save_as_molden") {
-    outcar.parseElems(contentVector);
-    OUTCAR::VecIt it_vec = outcar.parse_iteration_vec(contentVector);
-
     REQUIRE_NOTHROW(outcar.saveAsMolden(it_vec));
     REQUIRE_THROWS(outcar.saveAsMolden(it_vec, "animate.molden", -1));
     REQUIRE_THROWS(outcar.saveAsMolden(it_vec, "animate.molden", 17));
   }
+
+  WHEN("save_one_frame") {
+    REQUIRE(true == outcar.save_one_frame(it_vec.back(), "POSCAR_frame_direct"));
+    REQUIRE(true == outcar.save_one_frame(it_vec.back(), "POSCAR_frame_cartesian", false));
+    REQUIRE_THROWS(outcar.save_one_frame(it_vec.back(), "./no_dir/POSCAR_frame"));
+  }
+
+  WHEN("save_as_poscar") {
+    REQUIRE(true == outcar.saveAsPoscar(it_vec));
+  }
+
+
 }

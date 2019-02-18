@@ -189,7 +189,8 @@ public:
 public:
   bool saveAsPoscar(  const VecIt&    it_vec,
                       const char*     file_prefix = "POSCAR_frame",
-                      const char*     folder      = "poscar_frames/");
+                      const char*     folder      = "poscar_frames/",
+                      const bool      is_direct   = true);
 private:
   bool save_one_frame(const IonIteration&   iteration,
                       const char*           file_name,

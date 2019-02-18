@@ -958,7 +958,7 @@ namespace ionizing {
      return IonIteration{};
    }
 
-   this->tmpIteration = IonIteration{};
+   this->tmpIteration = IonIteration();
    int i_line = 0;
    const int end_of_lines = lines.size();
    const int nions = this->_incar._NIONS;
@@ -966,12 +966,11 @@ namespace ionizing {
    int parsed_parts = 0;
 
    for (; i_line < end_of_lines; ++i_line) {
-     if (2 != this->_incar._ISPIN) {
-       break;
-     }
      if (is_start_with(lines[i_line], " number of electron")) {
        this->tmpIteration._nSCF += 1;
-       parse_magmom(lines[i_line]);
+       if (2 == this->_incar._ISPIN) {
+         parse_magmom(lines[i_line]);
+       }
        continue;
      }
 
@@ -1027,11 +1026,13 @@ namespace ionizing {
      }
    }
 
-// For DEBUG use only
-   if (4 != parsed_parts) {
-     string str = string_printf("Parse Iteration result not complete:\n\t%2d/%2d parsed.\n",
-         parsed_parts, 4);
-   }
+/*
+ * // For DEBUG use only
+ *    if (4 != parsed_parts) {
+ *      string str = string_printf("Parse Iteration result not complete:\n\t%2d/%2d parsed.\n",
+ *          parsed_parts, 4);
+ *    }
+ */
 
    calc_atom_force(this->tmpIteration._atom_forces_dirs);
    this->tmpIteration._maxForce = this->tmpIteration._atom_forces.maxCoeff();
@@ -1089,6 +1090,8 @@ namespace ionizing {
        continue;
      }
    }
+
+   this->_lastEnergy    = .0;
    return _iterationVec;
  }
 
@@ -1185,28 +1188,46 @@ namespace ionizing {
 
 /*
  * bool saveAsPoscar(VecIt& it_vec, char* file_prefix, char* folder)
- * 
- * *******************************************
- * *             POSCAR FORMAT               *
- * *******************************************
- *
- * Title
- * scale
- * [lattice]
- * [Element names]
- * [ions per element]
- * [direct or cartesian]
- * [Positions]
  */
-/*
- * bool OUTCAR::saveAsPoscar(const VecIt& it_vec,
- *                           const char*  file_prefix,
- *                           const char*  folder) {
- *   const int nframes = this->_iterationVec.size();
- * 
- * 
- * }
- */
+bool OUTCAR::saveAsPoscar(const VecIt& it_vec,
+                          const char*  file_prefix,
+                          const char*  folder,
+                          const bool   is_direct) {
+  static auto create_dir = [](const char* path) -> bool {
+    const int status = mkdir(path, 0755);
+    return 0 == status;
+  };
+  static auto check_if_dir_exists = [](const char* path) -> bool {
+    struct stat info;
+    if (0 == stat(path, &info) and S_ISDIR(info.st_mode)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  if (!check_if_dir_exists(folder)) {  // Make sure folder exists
+    if (!create_dir(folder)) {
+      string str = string_printf("Create folder failed:\n\
+Cannot create %s .\n", folder);
+      throw str;
+      return false;
+    } else {  }
+  } else {  }
+
+  const int nframes = this->_iterationVec.size();
+  for (int i=0; i!=nframes; ++i) {
+    string file_name = string_printf("%s%s_%03d",
+        folder, file_prefix, i);
+    if (!save_one_frame(it_vec[i], file_name.c_str(), is_direct)) {
+      string str = string_printf("Saving POSCAR frames failed:\n\
+Saving to single frame failed.\n");
+      throw str;
+      return false;
+    }
+  }
+  return true;
+}
 
 /*
  * bool save_one_frame
@@ -1216,7 +1237,7 @@ namespace ionizing {
  *
  * Title
  * scale
- * [lattice]
+ * [lattice 3x3]
  * [Element names]
  * [ions per element]
  * [direct or cartesian]
@@ -1261,6 +1282,7 @@ bool OUTCAR::save_one_frame(const IonIteration&  iteration,
       string line = string_printf("  %12.7f  %12.7f  %12.7f  ! %5s \n",
           frac_pos(i, 0), frac_pos(i, 1), frac_pos(i, 2), 
           elem_tab[i].c_str() );
+      ss << line;
     }
   } else {
     ss << "Cartesian\n";
@@ -1270,6 +1292,7 @@ bool OUTCAR::save_one_frame(const IonIteration&  iteration,
       string line = string_printf("  %12.7f  %12.7f  %12.7f  ! %5s \n",
           cart_pos(i, 0), cart_pos(i, 1), cart_pos(i, 2),
           elem_tab[i].c_str() );
+      ss << line;
     }
   }
 
