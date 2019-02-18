@@ -456,4 +456,13 @@ TEST_CASE("Parse Iteration") {
     REQUIRE(it_vec_result.back()._cpuTime == 428.5440);
     REQUIRE(it_vec_result.back()._totalEnergy == -1062.01695778);
   }
+
+  WHEN("save_as_molden") {
+    outcar.parseElems(contentVector);
+    OUTCAR::VecIt it_vec = outcar.parse_iteration_vec(contentVector);
+
+    REQUIRE_NOTHROW(outcar.saveAsMolden(it_vec));
+    REQUIRE_THROWS(outcar.saveAsMolden(it_vec, "animate.molden", -1));
+    REQUIRE_THROWS(outcar.saveAsMolden(it_vec, "animate.molden", 17));
+  }
 }

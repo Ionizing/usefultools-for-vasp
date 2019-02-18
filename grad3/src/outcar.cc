@@ -1097,15 +1097,92 @@ namespace ionizing {
 
 /*
  * bool saveAsMolden(IonIteration it_vec, char* file_name, int skip)
- * Save IonIte
- */
-/*
- *  bool OUTCAR::saveAsMolden(  const VecIt  it_vec,
- *                              const char*  file_name,
- *                              const int    skip) {
+ * Save IonIteration vector as Molden Format
  * 
+ * ************************************************
+ * *                 MOLDEN FORMAT                *
+ * ************************************************
+ * "[Molden Format]"
+ * "[Title]"
+ * ""
+ * "[GEOCONV]"
+ * "energy"
+ * [TOTEN]
+ * "max-force"
+ * [MaxForce]
+ * "rms-force"
+ * [AvgForce]
+ * "[GEOMETRIES] XYZ"
+ * for (int i=0; i!=ItVec.size(); ++i) {
+ *  NIONS
+ *
+ *  for (int j=0; j!=NIONS; ++j) {
+ *    ElementName[j]     x[i][j] y[i][j] z[i][j]
  *  }
+ * }
+ *
  */
+
+ bool OUTCAR::saveAsMolden(  const VecIt& it_vec,
+                             const char*  file_name,
+                             const int    skip) {
+   if (skip < 0 or static_cast<size_t>(skip) >= it_vec.size()) {
+     string str = string_printf("Save as molden failed:\n\tSkip steps invalid:\n\
+\tnumber of iterations = %4lld, skip steps = %4d\n",
+      it_vec.size(), skip);
+     throw str;
+     return false;
+   }
+
+   std::stringstream ss;
+   ss << "[Molden Format]\n" 
+      << "[Title]\n\n" 
+      << "[GEOCONV]\n" 
+      << "energy\n";
+
+   for (size_t i=skip; i!=it_vec.size(); ++i) {
+     ss << it_vec[i]._totalEnergy << "\n";
+   }
+   ss << "max-force\n";
+   for (size_t i=skip; i!=it_vec.size(); ++i) {
+     ss << it_vec[i]._maxForce << "\n";
+   }
+   ss << "rms-force\n";
+   for (size_t i=skip; i!=it_vec.size(); ++i) {
+     ss << it_vec[i]._averageF << "\n";
+   }
+
+   // Generate Element Type table for each atom
+   VecStr elem_tab;
+   for (int i=0; i!=this->_nElems; ++i) {
+     VecStr consecutive_elem(_atomsPerElem[i], _Elems[i]);
+     elem_tab.insert(elem_tab.end(), consecutive_elem.begin(), consecutive_elem.end());
+   }
+   
+   ss << "[GEOMETRIES] XYZ\n";
+   for (size_t i=skip; i!=it_vec.size(); ++i) {
+     ss << this->_incar._NIONS << "\n\n";
+     for (int j=0; j!=this->_incar._NIONS; ++j) {
+       string line = string_printf("%8s %12.6f %12.6f %12.6f\n", 
+           elem_tab[j].c_str(), 
+           it_vec[i]._atom_positions(j, 0), 
+           it_vec[i]._atom_positions(j, 1), 
+           it_vec[i]._atom_positions(j, 2));
+       ss << line;
+     }
+   }
+
+   std::ofstream ofs(file_name);
+   if (!ofs.good()) {
+     string str = string_printf("Save as molden failed:\n\
+\tOpen %s file failed.\n", file_name);
+     throw str;
+     return false;
+   }
+   ofs << ss.str() << "\n";
+   ofs.close();
+   return true;
+ }
 
 
 

@@ -173,9 +173,11 @@ private:
 
 
 public:
-  bool saveAsMolden(  const VecIt     it_vec,
+  bool saveAsMolden(  const VecIt&    it_vec,
                       const char*     file_name =  "animate.molden",
                       const int       skip      =  0);
+private:
+  
 
 
 
