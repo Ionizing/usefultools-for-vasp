@@ -1068,8 +1068,6 @@ namespace ionizing {
    _iterationVec.clear();
    _iterationVec.reserve(10);
 
-   this->_nIterations   =  0;
-   this->_nSteps        =  0;
    this->_lastEnergy    = .0;
 
    int it_start, it_end;
@@ -1183,6 +1181,113 @@ namespace ionizing {
    ofs.close();
    return true;
  }
+
+
+/*
+ * bool saveAsPoscar(VecIt& it_vec, char* file_prefix, char* folder)
+ * 
+ * *******************************************
+ * *             POSCAR FORMAT               *
+ * *******************************************
+ *
+ * Title
+ * scale
+ * [lattice]
+ * [Element names]
+ * [ions per element]
+ * [direct or cartesian]
+ * [Positions]
+ */
+/*
+ * bool OUTCAR::saveAsPoscar(const VecIt& it_vec,
+ *                           const char*  file_prefix,
+ *                           const char*  folder) {
+ *   const int nframes = this->_iterationVec.size();
+ * 
+ * 
+ * }
+ */
+
+/*
+ * bool save_one_frame
+ * *******************************************
+ * *             POSCAR FORMAT               *
+ * *******************************************
+ *
+ * Title
+ * scale
+ * [lattice]
+ * [Element names]
+ * [ions per element]
+ * [direct or cartesian]
+ * [Positions]
+ */
+bool OUTCAR::save_one_frame(const IonIteration&  iteration,
+                            const char*          file_name,
+                            const bool           is_direct) {
+  std::stringstream ss;
+  ss << "Title\n" 
+     << "1.0\n";
+  
+  for (int i=0; i!=3; ++i) {
+    string line = string_printf("%12.6f %12.6f %12.6f\n",
+        iteration._lattice_vector(i, 0),
+        iteration._lattice_vector(i, 1),
+        iteration._lattice_vector(i, 2));
+    ss << line;
+  }
+
+  for (const string& e : this->_Elems) {
+    ss << std::setw(6) << e;
+  } ss << "\n";
+
+  for (int e : this->_atomsPerElem) {
+    ss << std::setw(6) << e;
+  } ss << "\n";
+
+  // Generate Element Type table for each atom
+  VecStr elem_tab;
+  for (int i=0; i!=this->_nElems; ++i) {
+    VecStr consecutive_elem(_atomsPerElem[i], _Elems[i]);
+    elem_tab.insert(elem_tab.end(), consecutive_elem.begin(), consecutive_elem.end());
+  }
+
+  if (is_direct) {
+    ss << "Direct\n";
+    Mat33d b_cell = iteration._lattice_vector.inverse();
+    MatX3d frac_pos = iteration._atom_positions * b_cell;
+
+    for (int i=0; i!=frac_pos.rows(); ++i) {
+      string line = string_printf("  %12.7f  %12.7f  %12.7f  ! %5s \n",
+          frac_pos(i, 0), frac_pos(i, 1), frac_pos(i, 2), 
+          elem_tab[i].c_str() );
+    }
+  } else {
+    ss << "Cartesian\n";
+    const MatX3d cart_pos = iteration._atom_positions;
+    
+    for (int i=0; i!=cart_pos.rows(); ++i) {
+      string line = string_printf("  %12.7f  %12.7f  %12.7f  ! %5s \n",
+          cart_pos(i, 0), cart_pos(i, 1), cart_pos(i, 2),
+          elem_tab[i].c_str() );
+    }
+  }
+
+  std::ofstream ofs(file_name);
+  if (!ofs.good()) {
+    string str = string_printf("Save one frame failed:\n\
+\tOpen %s file failed.\n", file_name);
+    throw str;
+    return false;
+  } else {
+    ofs << ss.str() << "\n";
+  }
+
+  ofs.close();
+  return true;
+}
+
+
 
 
 

@@ -12,6 +12,13 @@
 #include <stringops.hpp>
 #include <incar.hpp>
 
+#include <sys/stat.h>     // mkdir
+#include <sys/types.h>     // mkdir
+
+#if (defined(_WIN32) || defined(__WIN32__))
+#  define mkdir(A, B) mkdir(A)  // Compromise for MinGW
+#endif
+
 namespace ionizing{ 
 
 #ifdef UNIT_TEST
@@ -157,8 +164,10 @@ public:
 private:
   IonIteration tmpIteration;
   VecIt _iterationVec;
-  int    _nIterations;
-  int    _nSteps;
+  /*
+   * int    _nIterations;
+   * int    _nSteps; use this->_iterationVec.size() instead
+   */
   double _lastEnergy;
 
   IonIteration  parse_iteration      (const VecStr& lines);
@@ -176,8 +185,15 @@ public:
   bool saveAsMolden(  const VecIt&    it_vec,
                       const char*     file_name =  "animate.molden",
                       const int       skip      =  0);
+
+public:
+  bool saveAsPoscar(  const VecIt&    it_vec,
+                      const char*     file_prefix = "POSCAR_frame",
+                      const char*     folder      = "poscar_frames/");
 private:
-  
+  bool save_one_frame(const IonIteration&   iteration,
+                      const char*           file_name,
+                      const bool            is_direct = true);
 
 
 
