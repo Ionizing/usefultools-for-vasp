@@ -128,11 +128,11 @@ skip=0 o=./OUTCAR prefix=POSCAR_frame dir=frames",
 %s %3d%2s%c  \
 %s %5.2f",
         i, GREEN_TOTEN, toten,
-        GREEN_LGDE, std::log(std::abs(it_vec[i]._deltaE)),
+        GREEN_LGDE, std::log10(std::abs(it_vec[i]._deltaE)),
         GREEN_SCFS, it_vec[i]._nSCF,
         GREEN_MAXF, it_vec[i]._maxForce,
         GREEN_AVGF, it_vec[i]._averageF,
-        GREEN_INDEX, it_vec[i]._maxAtomElem.c_str(), it_vec[i]._maxIndex,
+        GREEN_INDEX, it_vec[i]._maxIndex, it_vec[i]._maxAtomElem.c_str(), it_vec[i]._maxDirection,
         GREEN_TIME, it_vec[i]._cpuTime / 60);
 
     if (is_output_magmom) {
