@@ -106,6 +106,14 @@ TEST_CASE("String Printf") {
 
     REQUIRE(str == string_printf("%s", str));
   }
+
+  WHEN("Another test") {
+    const char* file_name = "OUTCAR";
+    const char* result    = "OUTCAR class Construction failed:\n\tOpen file " "OUTCAR" " failed.\n";
+    std::string str = string_printf("OUTCAR class Construction failed:\n\tOpen file %s failed.\n", file_name);
+
+    REQUIRE(result == str);
+  }
 }
 
 TEST_CASE("Count occurrences of substr") {

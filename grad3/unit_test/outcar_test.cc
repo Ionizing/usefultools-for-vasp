@@ -29,14 +29,14 @@ TEST_CASE("parse_elems debug") {
 
 TEST_CASE("parse_elems test") {
   VecStr str_vec {
-    "   VRHFIN =Cu: d10 p1                ",
-    "   VRHFIN =C: s2p2                   ",
-    "   VRHFIN =H: ultrasoft test         " };
+    " POTCAR:    PAW_PBE O 08Apr2002                   ",
+    " POTCAR:    PAW_PBE Ti_pv 07Sep2000               ",
+    " POTCAR:    PAW_PBE Ba_sv 06Sep2000               " };
 
   VecStr result {
-    "Cu",
-    "C",
-    "H" };
+    "O",
+    "Ti",
+    "Ba" };
 
   REQUIRE(result == outcar.parse_elems(str_vec));
 }

@@ -8,12 +8,6 @@ namespace ionizing {
 
   OUTCAR::OUTCAR(const char* file_name) {
     std::ifstream ifs(file_name);
-    if (!ifs.good()) {
-      string str = string_printf("OUTCAR class Construction failed:\n\
-Open file %s failed.\n", file_name);
-      throw str;
-      std::exit(EXIT_FAILURE);
-    }
     init(ifs);
   }
 
@@ -25,14 +19,64 @@ Open file %s failed.\n", file_name);
  * Out: is successful or not
  */
   bool OUTCAR::init(std::istream& is) {
-    file_to_string(is);
-    string_to_vecstr(this->_content);
+    try {
+      if (!is.good()) {
+        string str = string_printf("OUTCAR class Construction failed:\n\tOpen OUTCAR failed.\n");
+        throw str;
+      }
+    } catch (std::string msg) {
+      std::cerr << msg << std::endl;
+      std::abort();
+    }
 
-    parseElems         (_contentVector);
-    parseLatticeVectors(_contentVector, __current_line);
-    parseINCAR         (_contentVector, __current_line);
-    parseKPoints       (_contentVector, __current_line);
-    parseIterationVec  (_contentVector, __current_line);
+    try {
+      file_to_string (is);
+    } catch (std::string msg) {
+      std::cerr << msg << std::endl;
+      std::abort();
+    }
+
+    try {
+      string_to_vecstr   (this->_content);
+    } catch (std::string msg) {
+      std::cerr << msg << std::endl;
+      std::abort();
+    }
+
+    try {
+      parseElems         (_contentVector);
+    } catch (std::string msg) {
+      std::cerr << msg << std::endl;
+      std::abort();
+    }
+
+    try {
+      parseLatticeVectors(_contentVector, __current_line);
+    } catch (std::string msg) {
+      std::cerr << msg << std::endl;
+      std::abort();
+    }
+
+    try {
+      parseINCAR         (_contentVector, __current_line);
+    } catch (std::string msg) {
+      std::cerr << msg << std::endl;
+      std::abort();
+    }
+
+    try {
+      parseKPoints       (_contentVector, __current_line);
+    } catch (std::string msg) {
+      std::cerr << msg << std::endl;
+      std::abort();
+    }
+
+    try {
+      parseIterationVec  (_contentVector, __current_line);
+    } catch (std::string msg) {
+      std::cerr << msg << std::endl;
+      std::abort();
+    }
     return true;
   }
 
@@ -82,26 +126,29 @@ Open file %s failed.\n", file_name);
  * VecStr pars_elems(VecStr lines)
  *  in: String Vector that contains 'VRHFIN =[Element]...'
  *  ---------
- *  "   VRHFIN =Cu: d10 p1",
- *  "   VRHFIN =C: s2p2",
- *  "   VRHFIN =H: ultrasoft test"
+ *  " POTCAR:    PAW_PBE O 08Apr2002                   ",
+ *  " POTCAR:    PAW_PBE Ti_pv 07Sep2000               ",
+ *  " POTCAR:    PAW_PBE Ba_sv 06Sep2000               "
  *  ---------
  * out: String Vector full of element names;
  *  ---------
- *  "Cu",
- *  "C",
- *  "H"
+ *  "O",
+ *  "Ti",
+ *  "Ba"
  *  ---------
  */
  VecStr OUTCAR::parse_elems(const VecStr& lines) {
     VecStr out;
     for (string e : lines) {
-      if (!is_start_with(e, "   VRHFIN =")) {
+      if (!is_start_with(e, " POTCAR:")) {
         throw "String doesn't contain element name"; 
+        return out;
       }
-      e.erase(0, 11);
-      e.erase(e.find_first_of(':'), string::npos);
-      out.emplace_back(std::move(e));
+      string tmp = split(e)[2];
+      if (tmp.length() > 2) {
+        tmp.erase(2, string::npos);
+      }
+      out.emplace_back(std::move(tmp));
     }
     return out;
   }
@@ -134,7 +181,7 @@ Open file %s failed.\n", file_name);
 
     int cnt = 0;
     for (int i=startline; i!=endline; ++i) {
-      if (cnt < _nElems and is_start_with(lines[i], "   VRHFIN =")) {
+      if (cnt < _nElems and is_start_with(lines[i], " POTCAR:")) {
         lines_to_use.emplace_back(lines[i]);
         ++cnt;
       }

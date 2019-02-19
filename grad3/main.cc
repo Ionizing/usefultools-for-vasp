@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
        is_without_entropy = false,
        is_print_example   = false,
        is_print_help      = false,
-       is_direct          = true;
+       is_direct          = false;
 
   int  molden_skip        = 0;
 
@@ -97,6 +97,26 @@ int main(int argc, char* argv[]) {
      cxxopts::value<std::string>(frame_sub_dir));
 
   auto result = options.parse(argc, argv);
+
+// #define MAIN_DEBUG
+#ifdef MAIN_DEBUG
+  std::cout << "is_direct = " << is_direct << std::endl
+            << "is_print_help = " << is_print_help << std::endl
+            << "is_print_example = " << is_print_example << std::endl
+            << "is_output_magmom = " << is_output_magmom << std::endl
+            << "is_output_volume = " << is_output_volume << std::endl
+            << "is_output_poscars  = " << is_output_poscars << std::endl
+            << "is_output_molden = " << is_output_molden << std::endl
+            << "is_without_entropy = " << is_without_entropy << std::endl
+            << "molden_skip = " << molden_skip << std::endl
+            << "outcar_name = " << outcar_name << std::endl
+            << "frame_prefix = " << frame_prefix << std::endl
+            << "frame_sub_dir = " << frame_sub_dir << std::endl;
+#endif
+
+
+
+
   if (is_print_help) {
     std::cout << options.help();
     return 0;
@@ -108,14 +128,16 @@ Example:\n\
     %s magmom volume poscar molden e \
 skip=0 o=./OUTCAR prefix=POSCAR_frame dir=frames",
         argv[0]);
+    std::cout << str << std::endl;
     return 0;
   }
-  
+
   OUTCAR outcar{outcar_name.c_str()}; 
+
   VecStr        elems  = outcar.getElems();
   OUTCAR::VecIt it_vec = outcar.getIterationVec();
 
-  for (int i=0; it_vec.size(); ++i) {
+  for (int i=0; i!=static_cast<int>(it_vec.size()); ++i) {
     double toten = is_without_entropy ? it_vec[i]._totalEnergy_sigma_0 : it_vec[i]._totalEnergy;
 
     std::string line;
