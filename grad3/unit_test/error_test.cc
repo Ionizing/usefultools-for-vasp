@@ -4,7 +4,7 @@ void foo() {
   PRINT_ERROR("test in function 'foo'");
 }
 
-int main(int argc, char* argv[]) {
+int main() {
 
   PRINT_ERROR("test in function 'main'");
 

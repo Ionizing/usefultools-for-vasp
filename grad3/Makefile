@@ -13,14 +13,26 @@ TEST_EXE := $(patsubst %.cc, %.out, $(TEST_SRC))
 
 .SECONDARY: $(OBJS)
 
-all: $(TEST_EXE)
+all: $(TEST_EXE) cgrad
+
+test: $(TEST_EXE)
+	@cd unit_test; 										\
+	for i in `ls | grep -E 'out$$'` ; \
+		do														 	\
+			echo 'executing ' $$i ' ...';	\
+			./$$i ;	  										\
+		done ;
 
 ./src/%.o: ./src/%.cc $(INCS)
 	$(CC) -o $@ -c $< $(INCLUDE) $(CFLAGS)
 
 ./unit_test/%.out: ./unit_test/%.cc $(OBJS) $(INCS)
 	$(CC) -o $@ $< $(OBJS) $(INCLUDE) $(CFLAGS) $(LFLAGS)
-	$@
+
+cgrad: main.cc $(OBJS) $(INCS)
+	$(CC) -o $@ $< $(OBJS) $(INCLUDE) $(CFLAGS) $(LFLAGS)
 
 clean:
-	@rm $(OBJS) $(TEST_EXE)
+	@rm -rf $(OBJS) $(TEST_EXE) ./unit_test/*.dSYM \
+		./unit_test/POSCAR* ./unit_test/animate.molden \
+		./unit_test/poscar_frames ./cgrad ./cgrad.dSYM

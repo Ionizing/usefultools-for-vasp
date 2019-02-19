@@ -7,7 +7,7 @@
 
 using namespace ionizing;
 
-OUTCAR outcar;
+OUTCAR outcar("./test4/OUTCAR");
 
 TEST_CASE("parse_elems debug") {
   VecStr str_vec {
@@ -42,7 +42,7 @@ TEST_CASE("parse_elems test") {
 }
 
 TEST_CASE("Read OUTCAR to one string and VecStr") {
-  std::ifstream ifs("./unit_test/test1/OUTCAR");
+  std::ifstream ifs("./test1/OUTCAR");
   string content = outcar.file_to_string(ifs);
 
   WHEN("into one string") {
@@ -62,7 +62,7 @@ TEST_CASE("Read OUTCAR to one string and VecStr") {
   }
 
   WHEN("from raw file") {
-    std::ifstream ifs2("./unit_test/test3/OUTCAR");
+    std::ifstream ifs2("./test3/OUTCAR");
     VecStr elem_name { "Cu", "C", "H" };
     std::vector<int> ions_per_type {100, 2, 2};
 
@@ -99,7 +99,7 @@ TEST_CASE("Parse Lattice Vector") {
   }
 
   WHEN("from raw file") {
-    std::ifstream ifs("./unit_test/test3/OUTCAR");
+    std::ifstream ifs("./test3/OUTCAR");
     string content = outcar.file_to_string(ifs);
     VecStr contentVector = outcar.string_to_vecstr(content);
 
@@ -193,7 +193,7 @@ TEST_CASE("Parse KPoints") {
   }
 
   WHEN("from raw file") {
-    std::ifstream ifs("./unit_test/test2/OUTCAR");
+    std::ifstream ifs("./test2/OUTCAR");
     string content = outcar.file_to_string(ifs);
     VecStr contentVector = outcar.string_to_vecstr(content);
 
@@ -274,7 +274,7 @@ TEST_CASE("INCAR Parameters in OUTCAR") {
     REQUIRE(9 == outcar._incar._NKPTS);
   }
 
-  std::ifstream ifs("./unit_test/test2/OUTCAR");
+  std::ifstream ifs("./test2/OUTCAR");
   string content       = outcar.file_to_string(ifs);
   VecStr contentVector = outcar.string_to_vecstr(content);
   outcar.parseINCAR(contentVector);
@@ -407,7 +407,7 @@ TEST_CASE("Parse Iteration") {
     REQUIRE(atom_force_res == outcar.calc_atom_force(atom_force_dirs));
   }
 
-  std::ifstream ifs("./unit_test/test6/OUTCAR");
+  std::ifstream ifs("./test6/OUTCAR");
   string content        = outcar.file_to_string(ifs);
   VecStr contentVector  = outcar.string_to_vecstr(content);
 
@@ -449,7 +449,7 @@ TEST_CASE("Parse Iteration") {
     OUTCAR::VecIt it_vec_result;
     outcar._incar._NIONS = 135;
     outcar._incar._ISPIN = 2;
-    REQUIRE_NOTHROW(it_vec_result = outcar.parse_iteration_vec(contentVector));
+    REQUIRE_NOTHROW(it_vec_result = outcar.parseIterationVec(contentVector));
     REQUIRE(17 == it_vec_result.size());
 
     REQUIRE(it_vec_result.back()._cpuTime == 428.5440);
@@ -457,7 +457,7 @@ TEST_CASE("Parse Iteration") {
   }
 
   outcar.parseElems(contentVector);
-  OUTCAR::VecIt it_vec = outcar.parse_iteration_vec(contentVector);
+  OUTCAR::VecIt it_vec = outcar.parseIterationVec(contentVector);
   WHEN("save_as_molden") {
     REQUIRE_NOTHROW(outcar.saveAsMolden(it_vec));
     REQUIRE_THROWS(outcar.saveAsMolden(it_vec, "animate.molden", -1));

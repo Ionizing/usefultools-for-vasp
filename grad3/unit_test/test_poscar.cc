@@ -2,8 +2,8 @@
 
 using ionizing::POSCAR;
 
-int main(int argc, char* argv[]) {
-  POSCAR poscar{"./unit_test/test6/POSCAR"};
+int main() {
+  POSCAR poscar{"./test6/POSCAR"};
 
   /*
    * poscar.saveAsDuplicate("POSCAR_cart", true);

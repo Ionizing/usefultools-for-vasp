@@ -1,4 +1,4 @@
-#include "../include/textio.hpp"
+#include <textio.hpp>
 
 namespace ionizing {
 
@@ -22,13 +22,6 @@ TextIO::TextIO(const char* file_name) : _is{nullptr} {
 TextIO::TextIO(std::istream& is) : _is{is.rdbuf()} {
   std::cout << "\nUsing redirected filestream.\n" << std::endl;
 }
-
-/*
- * TextIO::TextIO(const string& str) : _is(nullptr) {
- *   std::stringstream ss(str);
- *   _is.rdbuf(ss.rdbuf());
- * }
- */
 
 TextIO::~TextIO() {
   std::cout << "\nTextIO destructed successfully!\n" << std::endl; 

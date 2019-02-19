@@ -27,14 +27,13 @@ namespace ionizing{
 
 class OUTCAR {
 public:
-  /*
-   * OUTCAR(std::istream& is);
-   * OUTCAR(const char* file_name);
-   * ~OUTCAR();
-   */
+  OUTCAR(std::istream&  is);
+  OUTCAR(const char*    file_name = "POSCAR");
+  ~OUTCAR() = default;
 private:
   const string& file_to_string(std::istream& is);
   const VecStr& string_to_vecstr(const string& content);
+  bool  init(std::istream& is);
 
 
 /*
@@ -42,8 +41,10 @@ private:
  */
 public:
   const VecStr& parseElems(const VecStr& lines, 
-                    const int     startline =  0,
-                          int     endline   = -1);
+                           const int     startline =  0,
+                                 int     endline   = -1);
+  const VecStr& getElems()                   const;
+  const std::vector<int>& getAtomsPerElem () const;
 private:
   int    _nElems;
   VecStr _Elems;
@@ -58,7 +59,9 @@ public:
   Mat33d parseLatticeVectors(const VecStr& lines, 
                              const int     startline =  0, 
                                    int     endline   = -1);
+  const Mat33d& getLatticeVectors() const;
 private:
+  Mat33d _latticeVector;    // initial lattice from POSCAR
   Mat33d parse_lattice_vectors(const VecStr& lines);
 
 /*
@@ -74,6 +77,7 @@ public:
   INCAR parseINCAR(const VecStr& lines,
                    const int     startline =  0,
                          int     endline   = -1);
+  const INCAR& getINCAR()  const;
 private:
   INCAR _incar;
   void parse_incar(const VecStr& lines);
@@ -100,6 +104,7 @@ public:
   MatX3d parseKPoints(const VecStr& lines,
                       const int     startline =  0,
                             int     endline   = -1);
+  const MatX3d& getKPoints() const ;
 private:
   MatX3d     _kpoints;
   const MatX3d& parse_kpoints(const VecStr& lines);
@@ -112,6 +117,9 @@ private:
 public:
   struct IonIteration{
     int    _nSCF;
+    int    _maxIndex;
+    string _maxAtomElem;
+    char   _maxDirection;
     double _totalEnergy;
     double _totalEnergy_sigma_0;      // free energy without entropy when sigma -> 0
     double _cpuTime;
@@ -127,6 +135,9 @@ public:
 
     IonIteration() :                  // Initialization
       _nSCF               { 0},
+      _maxIndex           { 0},
+      _maxAtomElem        {""},
+      _maxDirection       {'a'},
       _totalEnergy        {.0},
       _totalEnergy_sigma_0{.0},
       _cpuTime            {.0},
@@ -143,6 +154,9 @@ public:
     bool operator==(const IonIteration& rhs) const {
       return (
         (this->_nSCF                == rhs._nSCF               ) and
+        (this->_maxIndex            == rhs._maxIndex           ) and
+        (this->_maxAtomElem         == rhs._maxAtomElem        ) and
+        (this->_maxDirection        == rhs._maxDirection       ) and
         (this->_totalEnergy         == rhs._totalEnergy        ) and
         (this->_totalEnergy_sigma_0 == rhs._totalEnergy_sigma_0) and
         (this->_cpuTime             == rhs._cpuTime            ) and
@@ -158,9 +172,10 @@ public:
     }
   };
   using VecIt = std::vector<IonIteration>;
-  const VecIt & parse_iteration_vec  (const VecStr& lines,
-                                      const int     startline =  0,
-                                            int     endline   = -1);
+  const VecIt & parseIterationVec  (const VecStr& lines,
+                                    const int     startline =  0,
+                                          int     endline   = -1);
+  const VecIt & getIterationVec    () const ;
 private:
   IonIteration tmpIteration;
   VecIt _iterationVec;
@@ -222,6 +237,9 @@ private:
   
 // INCAR involved parameters
   int __current_line;
+
+// Element Table corresponding to each atom
+  VecStr _elem_tab;
 
 };
 

@@ -64,6 +64,7 @@ namespace ionizing {
     std::ifstream ifs{file_name};
     if (!ifs.good()) {
       std::cerr << "\nERROR: Open POSCAR file '" << file_name << "' failed.\n" << std::endl;
+      std::exit(EXIT_FAILURE);
     }
     init(ifs);
   }

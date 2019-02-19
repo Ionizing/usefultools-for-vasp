@@ -1,6 +1,44 @@
 #include <outcar.hpp>
 
 namespace ionizing {
+
+  OUTCAR::OUTCAR(std::istream& is) {
+    init(is);
+  }
+
+  OUTCAR::OUTCAR(const char* file_name) {
+    std::ifstream ifs(file_name);
+    if (!ifs.good()) {
+      string str = string_printf("OUTCAR class Construction failed:\n\
+Open file %s failed.\n", file_name);
+      throw str;
+      std::exit(EXIT_FAILURE);
+    }
+    init(ifs);
+  }
+
+
+/*
+ * bool init(std::istream& is)
+ *  In: file handle pointed to POSCAR
+ * Parse all the things.
+ * Out: is successful or not
+ */
+  bool OUTCAR::init(std::istream& is) {
+    file_to_string(is);
+    string_to_vecstr(this->_content);
+
+    parseElems         (_contentVector);
+    parseLatticeVectors(_contentVector, __current_line);
+    parseINCAR         (_contentVector, __current_line);
+    parseKPoints       (_contentVector, __current_line);
+    parseIterationVec  (_contentVector, __current_line);
+    return true;
+  }
+
+
+
+
 /*
  * string read_to_string(std::istream& is)
  *  in: std::ifstream of OUTCAR
@@ -106,9 +144,29 @@ namespace ionizing {
       } else /**/ ;
     }
 
-    return _Elems = parse_elems(lines_to_use);
+   _Elems = parse_elems(lines_to_use);
+
+   // Generate Element Type table for each atom
+   VecStr elem_tab;
+   for (int i=0; i!=this->_nElems; ++i) {
+     VecStr consecutive_elem(_atomsPerElem[i], _Elems[i]);
+     elem_tab.insert(elem_tab.end(), consecutive_elem.begin(), consecutive_elem.end());
+   }
+   _elem_tab = elem_tab;
+
+    return _Elems;
   }
   
+  const VecStr& OUTCAR::getElems() const {
+    return this->_Elems;
+  }
+
+  const std::vector<int>& OUTCAR::getAtomsPerElem() const {
+    return this->_atomsPerElem;
+  }
+
+
+
 /*
  * Mat33d parseLatticeVectors(VecStr& lines)
  *  in: OUTCAR content VecStr
@@ -140,7 +198,7 @@ namespace ionizing {
       sscanf(lines[i].c_str(), " A%*c = (%lf,%lf,%lf)", &out(i, 0), &out(i, 1), &out(i, 2));
     }
     
-    return out;
+    return this->_latticeVector = out;
   }
 
 /*
@@ -164,6 +222,10 @@ namespace ionizing {
       }
     }
     return parse_lattice_vectors(lines_to_use);
+  }
+
+  const Mat33d& OUTCAR::getLatticeVectors() const {
+    return this->_latticeVector;
   }
 
 
@@ -243,17 +305,11 @@ namespace ionizing {
         break;
       }
     }
+  } // end of function
 
-    /*
-     * if (13 != parsed_lines) {
-     *   string str;
-     *   string_printf("\tINCAR Parse failed with incorrect lines:%4d\n", parsed_lines);
-     *   throw str;
-     * }
-     */
-
+  const INCAR& OUTCAR::getINCAR() const {
+    return this->_incar;
   }
-
 
 
 /*
@@ -611,6 +667,9 @@ namespace ionizing {
   }
 
 
+  const MatX3d& OUTCAR::getKPoints() const {
+    return this->_kpoints;
+  }
 
 
 /*
@@ -1039,6 +1098,26 @@ namespace ionizing {
    this->tmpIteration._averageF = this->tmpIteration._atom_forces.sum() / this->_incar._NIONS;
    this->tmpIteration._deltaE   = this->tmpIteration._totalEnergy - this->_lastEnergy;
    this->_lastEnergy            = this->tmpIteration._totalEnergy;
+
+   for (int i=0; i!=this->_incar._NIONS; ++i) {
+     if (this->tmpIteration._maxForce - this->tmpIteration._atom_forces(i)
+         < 1e-5) {
+       this->tmpIteration._maxIndex = i;
+       this->tmpIteration._maxAtomElem = this->_elem_tab[i];
+       break;
+     }
+   }
+   
+   const Vecd tmp_pos = 
+     this->tmpIteration._atom_forces_dirs
+     .row(this->tmpIteration._maxIndex);
+   for (int i=0; i!=3; ++i) {
+     if ( std::abs(tmp_pos(i) - tmp_pos.maxCoeff()) < 1e-5 ) {
+      this->tmpIteration._maxDirection = "xyz"[i];
+      break;
+     }
+   }
+
    return this->tmpIteration;
  }
 
@@ -1057,9 +1136,9 @@ namespace ionizing {
  *  IonIteration Vector structure
  *  ----------
  */
- const OUTCAR::VecIt& OUTCAR::parse_iteration_vec(const VecStr& lines,
-                                                  const int     startline,
-                                                        int     endline) {
+ const OUTCAR::VecIt& OUTCAR::parseIterationVec(const VecStr& lines,
+                                                const int     startline,
+                                                      int     endline) {
    endline = (-1 == endline) ? lines.size() : endline;
    static const string IT_START_PREFIX = 
      "----------------------------------------- Iteration";
@@ -1093,6 +1172,11 @@ namespace ionizing {
 
    this->_lastEnergy    = .0;
    return _iterationVec;
+ }
+
+
+ const OUTCAR::VecIt& OUTCAR::getIterationVec() const {
+   return this->_iterationVec;
  }
 
 
@@ -1153,19 +1237,12 @@ namespace ionizing {
      ss << it_vec[i]._averageF << "\n";
    }
 
-   // Generate Element Type table for each atom
-   VecStr elem_tab;
-   for (int i=0; i!=this->_nElems; ++i) {
-     VecStr consecutive_elem(_atomsPerElem[i], _Elems[i]);
-     elem_tab.insert(elem_tab.end(), consecutive_elem.begin(), consecutive_elem.end());
-   }
-   
    ss << "[GEOMETRIES] XYZ\n";
    for (size_t i=skip; i!=it_vec.size(); ++i) {
      ss << this->_incar._NIONS << "\n\n";
      for (int j=0; j!=this->_incar._NIONS; ++j) {
        string line = string_printf("%8s %12.6f %12.6f %12.6f\n", 
-           elem_tab[j].c_str(), 
+           _elem_tab[j].c_str(), 
            it_vec[i]._atom_positions(j, 0), 
            it_vec[i]._atom_positions(j, 1), 
            it_vec[i]._atom_positions(j, 2));
@@ -1266,13 +1343,6 @@ bool OUTCAR::save_one_frame(const IonIteration&  iteration,
     ss << std::setw(6) << e;
   } ss << "\n";
 
-  // Generate Element Type table for each atom
-  VecStr elem_tab;
-  for (int i=0; i!=this->_nElems; ++i) {
-    VecStr consecutive_elem(_atomsPerElem[i], _Elems[i]);
-    elem_tab.insert(elem_tab.end(), consecutive_elem.begin(), consecutive_elem.end());
-  }
-
   if (is_direct) {
     ss << "Direct\n";
     Mat33d b_cell = iteration._lattice_vector.inverse();
@@ -1281,7 +1351,7 @@ bool OUTCAR::save_one_frame(const IonIteration&  iteration,
     for (int i=0; i!=frac_pos.rows(); ++i) {
       string line = string_printf("  %12.7f  %12.7f  %12.7f  ! %5s \n",
           frac_pos(i, 0), frac_pos(i, 1), frac_pos(i, 2), 
-          elem_tab[i].c_str() );
+          _elem_tab[i].c_str() );
       ss << line;
     }
   } else {
@@ -1291,7 +1361,7 @@ bool OUTCAR::save_one_frame(const IonIteration&  iteration,
     for (int i=0; i!=cart_pos.rows(); ++i) {
       string line = string_printf("  %12.7f  %12.7f  %12.7f  ! %5s \n",
           cart_pos(i, 0), cart_pos(i, 1), cart_pos(i, 2),
-          elem_tab[i].c_str() );
+          _elem_tab[i].c_str() );
       ss << line;
     }
   }
