@@ -5,6 +5,7 @@
 #include <base.hpp>
 #include <cstdarg>
 #include <functional>
+#include <memory>
 
 namespace ionizing {
   void    ltrim     (string&  str);
