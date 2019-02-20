@@ -1,28 +1,60 @@
-CC = c++
-LFLAGS = --std=c++11 -O3 -Wall -g -Os #-fno-omit-frame-pointer -fsanitize=address
-NUMBERS = 1 2 3 4 5 6
+CC             := c++
+CFLAGS_DEBUG   := -std=c++11 -g -Wall -Wextra -fno-omit-frame-pointer -fsanitize=address
+CFLAGS_RELEASE := -std=c++11 -O3
+CFLAGS_STATIC  := $(CFLAGS_RELEASE) --static
+LFLAGS         :=
+INCLUDE        := -I./include -I./third_party
 
-grad3 : main.o OUTCAR.o POSCAR.o global.o arg_parse.o
-	$(CC) -o cgrad main.o OUTCAR.o POSCAR.o global.o arg_parse.o $(LFLAGS)
+INCS     := $(wildcard ./include/*.hpp)
+SOURCE   := $(wildcard ./src/*.cc)
+OBJS     := $(patsubst %.cc, %.o, $(SOURCE))
+TEST_SRC := $(wildcard ./unit_test/*.cc)
+TEST_EXE := $(patsubst %.cc, %.out, $(TEST_SRC))
 
-test : grad3 $(TEST_FILES)
-	unzip -o ./tests.zip
-	$(foreach var,$(NUMBERS), echo running test$(var); ./cgrad -mvu -o ./test$(var)/OUTCAR -p ./test$(var)/POSCAR;)
+ifeq ($(firstword $(MAKECMDGOALS)), release)
+CFLAGS = $(CFLAGS_RELEASE)
+else
+CFLAGS = $(CFLAGS_RELEASE)
+endif
 
-main.o : main.cpp POSCAR.h OUTCAR.h global.h
-	$(CC) -c main.cpp $(LFLAGS)
+ifeq ($(firstword $(MAKECMDGOALS)), static)
+CFLAGS = $(CFLAGS_STATIC)
+endif
 
-OUTCAR.o : OUTCAR.cpp OUTCAR.h
-	$(CC) -c OUTCAR.cpp $(LFLAGS)
+ifeq ($(firstword $(MAKECMDGOALS)), unit_test)
+CFLAGS = $(CFLAGS_DEBUG)
+endif
 
-POSCAR.o : POSCAR.cpp POSCAR.h
-	$(CC) -c POSCAR.cpp $(LFLAGS)
+.PHONY: clean release static unit_test test
 
-global.o : global.h global.cpp
-	$(CC) -c global.cpp $(LFLAGS)
+.SECONDARY: $(OBJS)
 
-arg_parse.o : arg_parse.h arg_parse.cpp
-	$(CC) -c arg_parse.cpp $(LFLAGS)
+release static: cgrad
 
-clean :
-	-@rm -r *.o *.gch \~ cgrad test1 test2 test3 test4 test5 test6 test7 2> /dev/null || true
+test: cgrad
+	@for i in `ls unit_test | grep -E 'test\d+'` ;	do\
+			echo perfoming $$i ... ;			\
+			./cgrad -o unit_test/$${i}/OUTCAR ;					\
+	done ;
+
+unit_test: clean $(TEST_EXE)
+	@cd unit_test; 										\
+	for i in `ls | grep -E 'out$$'` ; \
+		do														 	\
+			echo 'executing ' $$i ' ...';	\
+			./$$i ;	  										\
+		done ;
+
+./src/%.o: ./src/%.cc $(INCS)
+	$(CC) -o $@ -c $< $(INCLUDE) $(CFLAGS)
+
+./unit_test/%.out: ./unit_test/%.cc $(OBJS) $(INCS)
+	$(CC) -o $@ $< $(OBJS) $(INCLUDE) $(CFLAGS) $(LFLAGS)
+
+cgrad: main.cc $(OBJS) $(INCS)
+	$(CC) -o $@ $< $(OBJS) $(INCLUDE) $(CFLAGS) $(LFLAGS)
+
+clean:
+	@rm -rf $(OBJS) $(TEST_EXE) ./unit_test/*.dSYM \
+		./unit_test/POSCAR* ./unit_test/animate.molden \
+		./unit_test/poscar_frames ./cgrad ./cgrad.dSYM

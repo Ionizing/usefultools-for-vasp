@@ -1,0 +1,72 @@
+[
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3/old", 
+  "arguments": [
+   "g++", 
+   "-c", 
+   "main.cpp", 
+   "--std=c++11", 
+   "-O3", 
+   "-Wall", 
+   "-g", 
+   "-Os"
+  ], 
+  "file": "main.cpp"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3/old", 
+  "arguments": [
+   "g++", 
+   "-c", 
+   "arg_parse.cpp", 
+   "--std=c++11", 
+   "-O3", 
+   "-Wall", 
+   "-g", 
+   "-Os"
+  ], 
+  "file": "arg_parse.cpp"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3/old", 
+  "arguments": [
+   "g++", 
+   "-c", 
+   "global.cpp", 
+   "--std=c++11", 
+   "-O3", 
+   "-Wall", 
+   "-g", 
+   "-Os"
+  ], 
+  "file": "global.cpp"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3/old", 
+  "arguments": [
+   "g++", 
+   "-c", 
+   "POSCAR.cpp", 
+   "--std=c++11", 
+   "-O3", 
+   "-Wall", 
+   "-g", 
+   "-Os"
+  ], 
+  "file": "POSCAR.cpp"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3/old", 
+  "arguments": [
+   "g++", 
+   "-c", 
+   "OUTCAR.cpp", 
+   "--std=c++11", 
+   "-O3", 
+   "-Wall", 
+   "-g", 
+   "-Os"
+  ], 
+  "file": "OUTCAR.cpp"
+ }
+]

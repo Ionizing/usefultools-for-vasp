@@ -1,0 +1,164 @@
+[
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/outcar.o", 
+   "-c", 
+   "src/outcar.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "src/outcar.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/error.o", 
+   "-c", 
+   "src/error.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "src/error.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/textio.o", 
+   "-c", 
+   "src/textio.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "src/textio.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/stringops.o", 
+   "-c", 
+   "src/stringops.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "src/stringops.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "unit_test/test_poscar.out", 
+   "unit_test/test_poscar.cc", 
+   "./src/error.o", 
+   "./src/outcar.o", 
+   "./src/element.o", 
+   "./src/poscar.o", 
+   "./src/stringops.o", 
+   "./src/textio.o", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "unit_test/test_poscar.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/poscar.o", 
+   "-c", 
+   "src/poscar.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "src/poscar.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "src/element.o", 
+   "-c", 
+   "src/element.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "src/element.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/grad3/grad3", 
+  "arguments": [
+   "c++", 
+   "-o", 
+   "unit_test/stringop_test.out", 
+   "unit_test/stringop_test.cc", 
+   "./src/error.o", 
+   "./src/outcar.o", 
+   "./src/element.o", 
+   "./src/poscar.o", 
+   "./src/stringops.o", 
+   "./src/textio.o", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-g", 
+   "-Wall", 
+   "-Wextra", 
+   "-fno-omit-frame-pointer", 
+   "-fsanitize=address"
+  ], 
+  "file": "unit_test/stringop_test.cc"
+ }
+]

@@ -38,3 +38,6 @@
 *.cquery
 /\~/
 *.gch
+
+*.dSYM*
+*.swp
