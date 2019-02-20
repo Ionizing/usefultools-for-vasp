@@ -51,7 +51,14 @@ using ionizing::VecStr;
 using std::string;
 
 int main(int argc, char* argv[]) {
-  cxxopts::Options options{argv[0], "An OUTCAR monitor for VASP optimization calculations."};
+  cxxopts::Options options{argv[0], 
+_YELLOW  
+"An OUTCAR monitor for VASP relaxation calculations.\n\
+  Author: Ionizing PeterSmith_9@outlook.com\n\
+  Acknoledgement: renh, zqj\n\
+  If any issues come up or you have any feature requests, open issues at: \n\
+  https://github.com/Ionizing/usefultools-for-vasp/issues \
+I'll it very much. ^_^\n" _RESET};
 
   bool is_output_magmom   = false,
        is_output_volume   = false,
