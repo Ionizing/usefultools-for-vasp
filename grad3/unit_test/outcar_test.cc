@@ -384,7 +384,7 @@ TEST_CASE("Parse Iteration") {
 
   WHEN("parse_toten_0") {
     const char* toten_str = "  energy  without entropy=    -1059.00022771  energy(sigma->0) =    -1059.00022771";
-    const char* toten_err = "energy  without entropy=    -1059.00022771  energy(sigma->0) =    -1059.00022771";
+    const char* toten_err = "  energy  without entropy=    -1059.00022771  energy(sigma->0) =";
     REQUIRE(-1059.00022771 == outcar.parse_toten_0(toten_str));
     REQUIRE(-1059.00022771 == outcar.tmpIteration._totalEnergy_sigma_0);
     REQUIRE_THROWS(outcar.parse_toten_0(toten_err));
