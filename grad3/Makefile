@@ -1,4 +1,4 @@
-CC             := c++
+CC             := g++
 CFLAGS_DEBUG   := -std=c++11 -g -Wall -Wextra -fno-omit-frame-pointer -fsanitize=address
 CFLAGS_RELEASE := -std=c++11 -O3
 CFLAGS_STATIC  := $(CFLAGS_RELEASE) --static
