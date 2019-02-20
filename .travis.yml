@@ -1,0 +1,17 @@
+language: cpp     # 指定项目语言类型
+dist: trusty
+sudo: false       # 是否需要 sudo 权限
+matrix:           # 配置 travis-ci 系统变量
+  include:
+    - os: linux   # 指定构建环境的系统类型
+    - compiler: gcc  # 指定编译器
+
+addons:           # 第三方依赖库的添加
+  apt:
+    packages:
+
+script:           # 构建的命令，默认为 ./configure && make
+  - cd ./grad3
+  - make unit_test
+  - make clean
+  - make static
