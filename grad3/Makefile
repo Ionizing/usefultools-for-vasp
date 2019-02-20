@@ -37,7 +37,7 @@ test: cgrad
 			./cgrad -o unit_test/$${i}/OUTCAR ;					\
 	done ;
 
-unit_test: $(TEST_EXE)
+unit_test: clean $(TEST_EXE)
 	@cd unit_test; 										\
 	for i in `ls | grep -E 'out$$'` ; \
 		do														 	\
