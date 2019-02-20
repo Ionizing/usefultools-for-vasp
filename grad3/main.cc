@@ -125,8 +125,7 @@ int main(int argc, char* argv[]) {
   if (is_print_example) {
     string str = string_printf("\
 Example:\n\
-    %s magmom volume poscar molden e \
-skip=0 o=./OUTCAR prefix=POSCAR_frame dir=frames",
+    %s --magmom --volume --poscar --molden -e --skip=0 -o ./OUTCAR --prefix=POSCAR_frame --dir=frames",
         argv[0]);
     std::cout << str << std::endl;
     return 0;
@@ -149,7 +148,7 @@ skip=0 o=./OUTCAR prefix=POSCAR_frame dir=frames",
 %s %6.3f  \
 %s %3d%2s%c  \
 %s %5.2f",
-        i, GREEN_TOTEN, toten,
+        i + 1, GREEN_TOTEN, toten,
         GREEN_LGDE, std::log10(std::abs(it_vec[i]._deltaE)),
         GREEN_SCFS, it_vec[i]._nSCF,
         GREEN_MAXF, it_vec[i]._maxForce,

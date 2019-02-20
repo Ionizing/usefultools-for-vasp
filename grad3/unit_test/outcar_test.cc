@@ -11,20 +11,25 @@ OUTCAR outcar("./test4/OUTCAR");
 
 TEST_CASE("parse_elems debug") {
   VecStr str_vec {
-    "   VRHFIN =Cu: d10 p1                ",
-    "   VRHFIN =C: s2p2                   ",
-    "   VRHFIN =H: ultrasoft test         " };
-  VecStr split_result {
-    "VRHFIN", "=Cu:", "d10", "p1" };
-  REQUIRE(split_result == split(str_vec[0]));
+    " POTCAR:    PAW_PBE O 08Apr2002                   ",
+    " POTCAR:    PAW_PBE Ti_pv 07Sep2000               ",
+    " POTCAR:    PAW_PBE Ba_sv 06Sep2000               " };
 
-  string elem_name = split(str_vec[0])[1];
+  VecStr result {
+    "O",
+    "Ti",
+    "Ba" };
 
-  elem_name.pop_back();
-  REQUIRE(elem_name == "=Cu");
-  
-  elem_name.erase(0, 1);
-  REQUIRE(elem_name == "Cu");
+  VecStr parse_result;
+  for (size_t i=0; i!=str_vec.size(); ++i) {
+    string tmp = split(str_vec[i])[2];
+    if (tmp.length() > 2) {
+      tmp.erase(2, string::npos);
+    }
+    parse_result.emplace_back(std::move(tmp));
+  }
+
+  REQUIRE(parse_result == result);
 }
 
 TEST_CASE("parse_elems test") {
@@ -377,12 +382,12 @@ TEST_CASE("Parse Iteration") {
     REQUIRE(force_res == outcar.parse_atom_force_pos(forcepos_vec));
   }
 
-  WHEN("parse_toten") {
+  WHEN("parse_toten_0") {
     const char* toten_str = "  energy  without entropy=    -1059.00022771  energy(sigma->0) =    -1059.00022771";
     const char* toten_err = "energy  without entropy=    -1059.00022771  energy(sigma->0) =    -1059.00022771";
-    REQUIRE(-1059.00022771 == outcar.parse_toten(toten_str));
+    REQUIRE(-1059.00022771 == outcar.parse_toten_0(toten_str));
     REQUIRE(-1059.00022771 == outcar.tmpIteration._totalEnergy_sigma_0);
-    REQUIRE(outcar.parse_toten(toten_err));
+    REQUIRE_THROWS(outcar.parse_toten_0(toten_err));
   }
 
   WHEN("parse_cpu_time") {

@@ -24,54 +24,12 @@ namespace ionizing {
         string str = string_printf("OUTCAR class Construction failed:\n\tOpen OUTCAR failed.\n");
         throw str;
       }
-    } catch (std::string msg) {
-      std::cerr << msg << std::endl;
-      std::abort();
-    }
-
-    try {
       file_to_string (is);
-    } catch (std::string msg) {
-      std::cerr << msg << std::endl;
-      std::abort();
-    }
-
-    try {
       string_to_vecstr   (this->_content);
-    } catch (std::string msg) {
-      std::cerr << msg << std::endl;
-      std::abort();
-    }
-
-    try {
       parseElems         (_contentVector);
-    } catch (std::string msg) {
-      std::cerr << msg << std::endl;
-      std::abort();
-    }
-
-    try {
       parseLatticeVectors(_contentVector, __current_line);
-    } catch (std::string msg) {
-      std::cerr << msg << std::endl;
-      std::abort();
-    }
-
-    try {
       parseINCAR         (_contentVector, __current_line);
-    } catch (std::string msg) {
-      std::cerr << msg << std::endl;
-      std::abort();
-    }
-
-    try {
       parseKPoints       (_contentVector, __current_line);
-    } catch (std::string msg) {
-      std::cerr << msg << std::endl;
-      std::abort();
-    }
-
-    try {
       parseIterationVec  (_contentVector, __current_line);
     } catch (std::string msg) {
       std::cerr << msg << std::endl;
@@ -230,6 +188,7 @@ namespace ionizing {
  */
   Mat33d OUTCAR::parse_lattice_vectors(const VecStr& lines) {
     Mat33d out;
+    // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
     if (lines.size() != 3) {
       throw string_printf("Invalid string vector size: %lld.", lines.size());
       return out;
@@ -242,6 +201,7 @@ namespace ionizing {
     }
     
     for (int i=0; i!=3; ++i) {
+      // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
       sscanf(lines[i].c_str(), " A%*c = (%lf,%lf,%lf)", &out(i, 0), &out(i, 1), &out(i, 2));
     }
     
@@ -764,13 +724,22 @@ namespace ionizing {
   }
 
 
-
+  double OUTCAR::parse_toten(const string& line) {
+    double toten;
+    int flag = sscanf(line.c_str(), "  free  energy   TOTEN  = %lf", &toten);
+    if (1 != flag or toten > 0 ) {
+      string str = string_printf("Parse TOTEN failed:\n\t%s\n\ttoten = %lf", toten);
+      throw str;
+      return -1;
+    }
+    return this->tmpIteration._totalEnergy = toten;
+  }
 
 
 
 
 /*
- * double parse_toten(const string& line)
+ * double parse_toten_0(const string& line)
  *  read TOTEN into _totalEnergy and _totalEnergy_sigma_0;
  *
  *  In:
@@ -782,19 +751,17 @@ namespace ionizing {
  *  -1059.00022771
  *  ----------
  */
-  double OUTCAR::parse_toten(const string& line) {
-    double toten, toten_sigma_0;
-    int flag = sscanf(line.c_str(), "  energy  without entropy= %lf  energy(sigma->0) = %lf",
-        &toten, &toten_sigma_0);
-    if (flag != 2 or (toten > 0 or toten_sigma_0 > 0)) {
-      string str = string_printf("Parse TOTEN failed:\n\t%s\n\ttoten = %lf, toten_sigma_0 = %lf\n",
-          line.c_str(), toten, toten_sigma_0);
+  double OUTCAR::parse_toten_0(const string& line) {
+    double toten_sigma_0;
+    int flag = sscanf(line.c_str(), "  energy  without entropy= %*f  energy(sigma->0) = %lf",
+        &toten_sigma_0);
+    if (flag != 1 or toten_sigma_0 > 0) {
+      string str = string_printf("Parse TOTEN failed:\n\t%s\n\ttoten_sigma_0 = %lf\n",
+          line.c_str(), toten_sigma_0);
       throw str;
       return -1;
     }
-    this->tmpIteration._totalEnergy         = toten;
-    this->tmpIteration._totalEnergy_sigma_0 = toten_sigma_0;
-    return this->tmpIteration._totalEnergy;
+    return this->tmpIteration._totalEnergy_sigma_0 = toten_sigma_0;
   }
 
 
@@ -985,6 +952,7 @@ namespace ionizing {
  * ----------
  */
  const MatX3d& OUTCAR::parse_atom_force_pos(const VecStr& lines) {
+   // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << " " << lines.size() << std::endl;
    if (static_cast<int>(lines.size()) != this->_incar._NIONS) {
      string str = string_printf("Parse Iteration's atom position & forces failed:\n\tlines.size() = %3d, NIONS = %3d\n",
         static_cast<int>(lines.size()), this->_incar._NIONS);
@@ -1081,27 +1049,52 @@ namespace ionizing {
      }
 
      if (is_start_with(lines[i_line], "------------------------ aborting loop")) {
+     // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
        break;
      }
    }
 
+     // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
+     int line_backup = i_line;
+     // std::cout << __FILE__ << __LINE__ << __FUNCTION__ 
+       // << " line_backup = "<< line_backup << std::endl;
    for (; i_line < end_of_lines; ++i_line) {
+/*
+ *  BUG HERE: When ISIF = 2, lattice may not change, so the lattice vectors
+ *  may not exist in each ion iterations. In this situation, this loop will
+ *  ends with `i_line` reached the end of file, causing the following parse
+ *  funcs not working.
+ */
      if (is_start_with(lines[i_line], " VOLUME and BASIS")) {
        parse_lattice_volume(lines[i_line + 3]);
        
+     // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
        int latt_start  = i_line + 5;
        int latt_end    = i_line + 8;
        VecStr latt_lines {
          lines.begin() + latt_start, lines.begin() + latt_end };
        parse_lattice(latt_lines);
 
+     // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
        ++parsed_parts;
        i_line += 8;
+       // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
        break;
      }
+   } // end for
+   if (i_line == end_of_lines) {
+     // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
+     i_line = line_backup;
+     this->tmpIteration._lattice_vector = this->_latticeVector;
+     this->tmpIteration._volume         = this->_latticeVector.determinant();
+     ++parsed_parts;
    }
 
+   line_backup = i_line;
    for (; i_line < end_of_lines; ++i_line) {
+     /*
+      * BUG HERE: Same as parsing lattice_vectors
+      */
      if (is_start_with(lines[i_line], " POSITION")) {
        VecStr pos_force_lines{
          lines.begin() + i_line + 2, lines.begin() + i_line + 2 + nions};
@@ -1109,16 +1102,28 @@ namespace ionizing {
        i_line += 2 + nions;
 
        ++parsed_parts;
+       // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
        break;
      }
+   } // end for
+   if (i_line == end_of_lines) {
+     i_line = line_backup;
+     this->tmpIteration._atom_forces_dirs = 
+       this->_iterationVec.back()._atom_forces_dirs;
+     this->tmpIteration._atom_positions   =
+       this->_iterationVec.back()._atom_positions;
+     // std::cout << __FILE__ << __LINE__ << __FUNCTION__ 
+       // << "_atom_positions.size() = " << this->tmpIteration._atom_positions.size() << std::endl;
+     ++parsed_parts;
    }
 
    for (; i_line < end_of_lines; ++i_line) {
      if (is_start_with(lines[i_line], "  energy  without"))  {
-       parse_toten(lines[i_line]);
-
+       parse_toten_0(lines[i_line]);
+       parse_toten(lines[i_line - 2]);
        ++parsed_parts;
        ++i_line;
+       // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
        break;
      }
    }
@@ -1128,15 +1133,19 @@ namespace ionizing {
        parse_cpu_time(lines[i_line]);
 
        ++parsed_parts;
+       // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
        break;
      }
    }
+   // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
 
 /*
  * // For DEBUG use only
  *    if (4 != parsed_parts) {
  *      string str = string_printf("Parse Iteration result not complete:\n\t%2d/%2d parsed.\n",
  *          parsed_parts, 4);
+ *      std::cerr << str;
+ *      std::abort();
  *    }
  */
 
@@ -1165,6 +1174,7 @@ namespace ionizing {
      }
    }
 
+   // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl;
    return this->tmpIteration;
  }
 
@@ -1211,6 +1221,8 @@ namespace ionizing {
        it_end = i + 1;
        is_in_iteration = false;
        VecStr iteration_lines(lines.begin() + it_start, lines.begin() + it_end);
+       // std::cout << __FILE__ << __LINE__ << __FUNCTION__ << " lines.size() = " 
+         // << iteration_lines.size() << " at line " << i << std::endl;
        parse_iteration(iteration_lines);
        _iterationVec.push_back(tmpIteration);
        continue;
@@ -1341,8 +1353,12 @@ Cannot create %s .\n", folder);
 
   const int nframes = this->_iterationVec.size();
   for (int i=0; i!=nframes; ++i) {
-    string file_name = string_printf("%s%s_%03d",
-        folder, file_prefix, i);
+    string folder_(folder);
+    while (folder_.back() == '/') {
+      folder_.pop_back();
+    }
+    string file_name = string_printf("%s/%s_%03d.vasp",
+        folder_.c_str(), file_prefix, i);
     if (!save_one_frame(it_vec[i], file_name.c_str(), is_direct)) {
       string str = string_printf("Saving POSCAR frames failed:\n\
 Saving to single frame failed.\n");

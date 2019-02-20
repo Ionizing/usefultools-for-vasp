@@ -191,6 +191,7 @@ private:
   const Mat33d& parse_lattice        (const VecStr& lines);
   const MatX3d& parse_atom_force_pos (const VecStr& lines);
         double  parse_toten          (const string& line);
+        double  parse_toten_0        (const string& line);
         double  parse_cpu_time       (const string& line);
 
   const Vecd  & calc_atom_force      (const MatX3d& atom_force_dirs);

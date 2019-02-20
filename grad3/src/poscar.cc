@@ -70,7 +70,7 @@ namespace ionizing {
   }
 
   POSCAR::~POSCAR() {
-    std::cout << "POSCAR class destructed.\n" << std::endl;
+    // std::cout << "POSCAR class destructed.\n" << std::endl;
   }
 
   string POSCAR::read_header(const string str) {
