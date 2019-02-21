@@ -58,7 +58,7 @@ _YELLOW
   Acknoledgement: renh, zqj\n\
   If any issues come up or you have any feature requests, open issues at: \n\
   https://github.com/Ionizing/usefultools-for-vasp/issues \
-I'll it very much. ^_^\n" _RESET};
+I'll appreciate it very much. ^_^\n" _RESET};
 
   bool is_output_magmom   = false,
        is_output_volume   = false,
