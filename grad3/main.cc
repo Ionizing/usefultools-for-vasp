@@ -67,7 +67,8 @@ I'll appreciate it very much. ^_^\n" _RESET};
        is_without_entropy = false,
        is_print_example   = false,
        is_print_help      = false,
-       is_direct          = false;
+       is_direct          = false,
+       is_clean_format    = false;
 
   int  molden_skip        = 0;
 
@@ -94,6 +95,8 @@ I'll appreciate it very much. ^_^\n" _RESET};
      cxxopts::value<bool>(is_print_help))
     ("direct", "Use direct coordinate rather than Cartesian when saving POSCAR",
      cxxopts::value<bool>(is_direct))
+    ("c, clean-format", "Output in clean format without color",
+     cxxopts::value<bool>(is_clean_format))
     ("skip", "Skip the head steps when saving as molden",
      cxxopts::value<int>(molden_skip))
     ("o, outcar", "Specify OUTCAR file",
@@ -114,6 +117,7 @@ I'll appreciate it very much. ^_^\n" _RESET};
             << "is_output_volume = " << is_output_volume << std::endl
             << "is_output_poscars  = " << is_output_poscars << std::endl
             << "is_output_molden = " << is_output_molden << std::endl
+            << "is_clean_format = " << is_clean_format << std::endl
             << "is_without_entropy = " << is_without_entropy << std::endl
             << "molden_skip = " << molden_skip << std::endl
             << "outcar_name = " << outcar_name << std::endl
@@ -143,33 +147,70 @@ Example:\n\
   VecStr        elems  = outcar.getElems();
   OUTCAR::VecIt it_vec = outcar.getIterationVec();
 
+  static const string fmt_complex = string_printf("%%3d \
+%s %%11.5f  \
+%s %%4.1f  \
+%s %%3d  \
+%s %%6.3f  \
+%s %%6.3f  \
+%s %%3d%%2s%%c  \
+%s %%5.2f",
+      GREEN_TOTEN,
+      GREEN_LGDE,
+      GREEN_SCFS,
+      GREEN_MAXF,
+      GREEN_AVGF,
+      GREEN_INDEX,
+      GREEN_TIME);
+
+  static const string fmt_clean = string_printf("  %%4d\
+ %%11.5f\
+   %%4.1f\
+  %%3d\
+ %%6.3f\
+ %%6.3f\
+ %%3d %%2s %%c\
+  %%5.2f");
+
+  const string fmt = (is_clean_format) ? fmt_clean : fmt_complex;
+  if (is_clean_format) {
+    string line = "#nStep       TOTEN Lg|dE| nSCF Max|F| Avg|F| i_max|F|   Time";
+    if (is_output_magmom) {
+      line += "    Magmom";
+    } else {}
+    if (is_output_volume) {
+      line += "    Volume";
+    } else {}
+    std::cout << line << std::endl;
+  }
+
   for (int i=0; i!=static_cast<int>(it_vec.size()); ++i) {
     double toten = is_without_entropy ? it_vec[i]._totalEnergy_sigma_0 : it_vec[i]._totalEnergy;
-
     std::string line;
-    line = string_printf("%3d \
-%s %11.5f  \
-%s %4.1f  \
-%s %3d  \
-%s %6.3f  \
-%s %6.3f  \
-%s %3d%2s%c  \
-%s %5.2f",
-        i + 1, GREEN_TOTEN, toten,
-        GREEN_LGDE, std::log10(std::abs(it_vec[i]._deltaE)),
-        GREEN_SCFS, it_vec[i]._nSCF,
-        GREEN_MAXF, it_vec[i]._maxForce,
-        GREEN_AVGF, it_vec[i]._averageF,
-        GREEN_INDEX, it_vec[i]._maxIndex, it_vec[i]._maxAtomElem.c_str(), it_vec[i]._maxDirection,
-        GREEN_TIME, it_vec[i]._cpuTime / 60);
+      line = string_printf(fmt.c_str(),
+          i + 1, toten,
+          std::log10(std::abs(it_vec[i]._deltaE)),
+          it_vec[i]._nSCF,
+          it_vec[i]._maxForce,
+          it_vec[i]._averageF,
+          it_vec[i]._maxIndex, it_vec[i]._maxAtomElem.c_str(), it_vec[i]._maxDirection,
+          it_vec[i]._cpuTime / 60);
 
-    if (is_output_magmom) {
-      line += string_printf(" %s %9.4f", GREEN_MAG, it_vec[i]._magmom);
-    }
+      if (is_output_magmom) {
+        if (!is_clean_format) {
+          line += string_printf(" %s %9.4f", GREEN_MAG, it_vec[i]._magmom);
+        } else {
+          line += string_printf(" %9.4f", it_vec[i]._magmom);
+        }
+      }
 
-    if (is_output_volume) {
-      line += string_printf(" %s %7.3f", GREEN_VOL, it_vec[i]._volume);
-    }
+      if (is_output_volume) {
+        if (!is_clean_format) {
+          line += string_printf(" %s %7.3f", GREEN_VOL, it_vec[i]._volume);
+        } else {
+          line += string_printf(" %9.4f", it_vec[i]._volume);
+        }
+      }
 
     std::cout << line << std::endl;
   } // end for
