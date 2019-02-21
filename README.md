@@ -5,7 +5,7 @@ An OUTCAR monitor for VASP relaxation calculations.
   Author: Ionizing PeterSmith_9@outlook.com
   Acknoledgement: renh, zqj
   If any issues come up or you have any feature requests, open issues at:
-  https://github.com/Ionizing/usefultools-for-vasp/issues I'll it very much. ^_^
+  https://github.com/Ionizing/usefultools-for-vasp/issues I'll appreciate it very much. ^_^
 
 Usage:
   ./cgrad [OPTION...]
@@ -27,6 +27,8 @@ Usage:
       --dir arg          Specify sub-directory in which POSCAR frames saved
 ```
 ## Make
+
+`cd` into `grad3` directory and `make`.
 
 `make test` is recommended, if you trust my code, just `make` and skip the test XD;
 
