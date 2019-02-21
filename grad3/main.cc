@@ -170,16 +170,16 @@ Example:\n\
  %%6.3f\
  %%6.3f\
  %%3d %%2s %%c\
-  %%5.2f");
+  %%7.2f");
 
   const string fmt = (is_clean_format) ? fmt_clean : fmt_complex;
   if (is_clean_format) {
-    string line = "#nStep       TOTEN Lg|dE| nSCF Max|F| Avg|F| i_max|F|   Time";
+    string line = "#nStep    TOTEN/eV Lg|dE| nSCF Max|F| Avg|F| i_max|F| Time/min";
     if (is_output_magmom) {
-      line += "    Magmom";
+      line += " Magmom/muB";
     } else {}
     if (is_output_volume) {
-      line += "    Volume";
+      line += "  Volume/A3";
     } else {}
     std::cout << line << std::endl;
   }
@@ -200,7 +200,7 @@ Example:\n\
         if (!is_clean_format) {
           line += string_printf(" %s %9.4f", GREEN_MAG, it_vec[i]._magmom);
         } else {
-          line += string_printf(" %9.4f", it_vec[i]._magmom);
+          line += string_printf(" %10.4f", it_vec[i]._magmom);
         }
       }
 
@@ -208,7 +208,7 @@ Example:\n\
         if (!is_clean_format) {
           line += string_printf(" %s %7.3f", GREEN_VOL, it_vec[i]._volume);
         } else {
-          line += string_printf(" %9.4f", it_vec[i]._volume);
+          line += string_printf(" %10.4f", it_vec[i]._volume);
         }
       }
 
