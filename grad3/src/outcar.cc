@@ -1461,6 +1461,16 @@ bool OUTCAR::save_one_frame_as_poscar(const IonIteration&  iteration,
 
 /*
  *  VecVib parseVibration (VecStr& lines, int startline = 0, int endline = -1)
+ *  In: "   Degrees of freedom DOF   =           54"
+ *          ...
+ *          ...
+ *      "     1 f  =   60.520970 THz   380.264471 2PiTHz 2018.762208 cm-1   250.294704 meV
+ *      "             X         Y         Z           dx          dy          dz
+ *      "     10.279364 10.279364  0.016558            0           0           0  
+ *      "      0.001283  2.570806  0.016223            0           0           0  
+ *      "      0.001283  5.140194  0.016223            0           0           0  
+ *      "     10.279364  7.712956  0.016558            0           0           0  
+ *
  */
 OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
                                       const int     startline,
@@ -1503,15 +1513,25 @@ OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
 
   int cnt_of_parsed_mode = 0;
   for (int i=__current_line; i!=endline; ++i) {
-    if (cnt_of_parsed_mode == this->_incar._NIONS) {
+    if (cnt_of_parsed_mode == this->_dof) {
       break;
     } else { /* */ }
     VecStr vib_mode {
       lines.begin() + i, lines.begin() + i + this->_incar._NIONS + 2 };
+    out.push_back(parse_vib_mode(vib_mode));   
+    i += this->_incar._NIONS + 3;
   }
-  
 
-  return out;
+  if (this->_dof != out.size()) {
+    string str = string_printf(
+        "Parse Vibrations failed:\n\
+\t Degrees of freedom not consistent with VecVib from OUTCAR\n\
+\t DOF = %d, VecVib.size() = %llu\n", this->_dof, out.size());
+    throw str;
+    return out;
+  }
+
+  return std::move(out);
 }
 
 
@@ -1591,6 +1611,12 @@ OUTCAR::Vibration OUTCAR::parse_vib_mode(const VecStr& lines) {
 }
 
 
+bool OUTCAR::save_one_mode_as_xsf(const Vibration& vib,
+                                  const char*      file_name,
+                                  const int        mode_ind) {
+
+  return true;
+}
 
 
 
