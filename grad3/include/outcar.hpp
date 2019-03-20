@@ -198,21 +198,44 @@ private:
 
 
 public:
-  bool saveAsMolden(  const VecIt&    it_vec,
+  bool saveAsMolden  (const VecIt&    it_vec,
                       const char*     file_name =  "animate.molden",
                       const int       skip      =  0);
-
-public:
-  bool saveAsPoscar(  const VecIt&    it_vec,
+                     
+public:              
+  bool saveAsPoscar  (const VecIt&    it_vec,
                       const char*     file_prefix = "POSCAR_frame",
                       const char*     folder      = "poscar_frames/",
                       const bool      is_direct   = true);
 private:
-  bool save_one_frame(const IonIteration&   iteration,
+  bool save_one_frame_as_poscar(const IonIteration&   iteration,
                       const char*           file_name,
                       const bool            is_direct = true);
 
+public:
+  struct Vibration {
+    double  _freq;
+    MatX3d  _dfreq;
+  };
+  using VecVib = std::vector<Vibration>;
+  VecVib parseVibration (const VecStr&    lines,
+                         const int        startline =  0,
+                               int        endline   = -1);
 
+  bool   saveAsXsf      (const VecVib&    vibs,
+                         const char*      prefix    = "vib_",
+                         const int        frame_ind = -1);
+
+  bool   saveAsMol      (const VecVib&    vibs,
+                         const char*      prefix    = "vib_");
+
+private:
+  VecVib    _vibrations;
+  Vibration parse_vib_mode        (const VecStr&    lines);
+  bool      save_one_mode_as_xsf  (const Vibration& vib,
+                                   const char*      file_name,
+                                   const int        mode_ind);
+  
 
 /*
  * public:

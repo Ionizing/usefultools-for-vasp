@@ -1359,7 +1359,7 @@ Cannot create %s .\n", folder);
     }
     string file_name = string_printf("%s/%s_%03d.vasp",
         folder_.c_str(), file_prefix, i);
-    if (!save_one_frame(it_vec[i], file_name.c_str(), is_direct)) {
+    if (!save_one_frame_as_poscar(it_vec[i], file_name.c_str(), is_direct)) {
       string str = string_printf("Saving POSCAR frames failed:\n\
 Saving to single frame failed.\n");
       throw str;
@@ -1370,7 +1370,7 @@ Saving to single frame failed.\n");
 }
 
 /*
- * bool save_one_frame
+ * bool save_one_frame_as_poscar
  * *******************************************
  * *             POSCAR FORMAT               *
  * *******************************************
@@ -1383,7 +1383,7 @@ Saving to single frame failed.\n");
  * [direct or cartesian]
  * [Positions]
  */
-bool OUTCAR::save_one_frame(const IonIteration&  iteration,
+bool OUTCAR::save_one_frame_as_poscar(const IonIteration&  iteration,
                             const char*          file_name,
                             const bool           is_direct) {
   std::stringstream ss;
@@ -1444,7 +1444,120 @@ bool OUTCAR::save_one_frame(const IonIteration&  iteration,
 }
 
 
+/******************************************************************
+ *                   Viberation involved stuff
+ *  This part requires IBRION == 5
+ *  `grep 'f  =' OUTCAR` shows the vibrations modes, 
+ *    or `grep DOF OUTCAR`
+ *  This part ignores the atom positions because they are same for 
+ *    all the vibration modes. We use the positions from the result
+ *    of structure optmization.
+ *  'XSF' and 'mol' formats are supported. 'XSF' files are stored
+ *    in seperated files and each file stores one mode. 'mol' file
+ *    stores all the modes. You can use VESTA to view XSF files,
+ *    or use 'jmol'/'molden' to view the 'mol' file.
+ ******************************************************************/
 
+
+/*
+ *  VecVib parseVibration (VecStr& lines, int startline = 0, int endline = -1)
+ */
+OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
+                                      const int     startline,
+                                            int     endline) {
+  VecVib out;
+  endline = (-1 == endline) ? lines.size() : endline;
+
+  if (5 != this->_incar._IBRION) {
+    string str = string_printf(
+        "Parse Vibrations failed:\n\
+\t IBRION != 5\n\
+\t IBRION == %d in this OUTCAR\n", this->_incar._IBRION);
+  }
+
+  int cnt_of_parsed_mode = 0;
+  for (int i=startline; i!=endline; ++i) {
+    
+  }
+
+  return out;
+}
+
+
+
+
+/*
+ * Vibration parse_vib_mode(const VecStr& lines)
+ *  In: lines.size() == NIONS + 2
+ *   ["   1 f  =   60.520970 THz   380.264471 2PiTHz 2018.762208 cm-1   250.294704 meV",
+ *    "             X         Y         Z           dx          dy          dz",
+ *    "      3.855500  1.274152  5.434607     0.000000    0.000485    0.000691",
+ *    "      3.855500  3.855500  5.534659     0.000025    0.000000   -0.014237",
+ *    "      3.855500  6.436848  5.434607     0.000116   -0.000524    0.000669",
+ *    "      3.855500  8.996166  5.437054     0.000008    0.000018   -0.000268",
+ *    "      6.426896  1.284104  5.433393     0.000168   -0.000154   -0.000169",
+ *    "      6.436848  3.855500  5.434607    -0.000494   -0.000023    0.000626",
+ *    "      6.426896  6.426896  5.433393     0.000185    0.000159   -0.000180",
+ *    "      6.425240  8.996166  5.435514    -0.000059    0.000008   -0.000174",
+ *    "      8.996166  1.285760  5.435514     0.000006    0.000052   -0.000135",
+ *    "      8.996166  3.855500  5.437054    -0.000013    0.000020   -0.000254",
+ *    "      8.996166  6.425240  5.435514     0.000003   -0.000037   -0.000121",
+ *    "      8.996166  8.996166  5.436557    -0.000007    0.000017   -0.000186",
+ *    "      3.855500  3.855500  7.374391     0.000215    0.000160    0.768259",
+ *    "      3.855500  3.855500  8.530953    -0.000003    0.000019   -0.639978"]
+ * Out: 
+ *        250.294704 ,
+ *   [[   0.000000,   0.000485,   0.000691],
+ *    [   0.000025,   0.000000,  -0.014237],
+ *    [   0.000116,  -0.000524,   0.000669],
+ *    [   0.000008,   0.000018,  -0.000268],
+ *    [   0.000168,  -0.000154,  -0.000169],
+ *    [  -0.000494,  -0.000023,   0.000626],
+ *    [   0.000185,   0.000159,  -0.000180],
+ *    [  -0.000059,   0.000008,  -0.000174],
+ *    [   0.000006,   0.000052,  -0.000135],
+ *    [  -0.000013,   0.000020,  -0.000254],
+ *    [   0.000003,  -0.000037,  -0.000121],
+ *    [  -0.000007,   0.000017,  -0.000186],
+ *    [   0.000215,   0.000160,   0.768259],
+ *    [  -0.000003,   0.000019,  -0.639978]]
+ *
+ */
+OUTCAR::Vibration OUTCAR::parse_vib_mode(const VecStr& lines) {
+  Vibration out;
+  if (lines.size() != this->_incar._NIONS + 2) {
+    string str = string_printf(
+        "Parse Vibration Mode failed:\n\
+\tVibration mode matrix.rows != NIONS\n\
+\tmatrix.rows = %d, NIONS = %d\n", lines.size() - 2, this->_incar._NIONS);
+    throw str;
+    return out;
+  } else {/*  */}
+  
+  // parse freq
+  int flag = sscanf(lines[0].c_str(), "%*d f  = %*lf THz %*lf 2PiTHz %*lf cm-1 %lf meV", &out._freq);
+  if (1 != flag) {
+    string str = string_printf(
+        "Parse Vibration Mode failed:\n\
+\tParse frequency failed:\n\
+\t\"%s\"", lines[0].c_str());
+    throw str;
+    return out;
+  }
+
+  out._dfreq.resize(lines.size(), 3);
+  for (int i=2; lines.size(); ++i) {
+    flag = sscanf(lines[i].c_str(), " %*s %*s %*s  %lf %lf %lf",
+        &out._dfreq(i-2, 0), &out._dfreq(i-2, 1), &out._dfreq(i-2, 2));
+    if (3 != flag) {
+      string str = string_printf(
+          "Parse Vibration Mode failed:\n\
+\tParse dfreqs failed:\n\
+\t\"%s\"\n", lines[i].c_str());
+    }
+  }
+  return out;
+}
 
 
 

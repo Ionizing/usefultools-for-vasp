@@ -4,82 +4,6 @@
   "arguments": [
    "g++", 
    "-o", 
-   "src/element.o", 
-   "-c", 
-   "src/element.cc", 
-   "-I./include", 
-   "-I./third_party", 
-   "-std=c++11", 
-   "-g", 
-   "-Wall", 
-   "-Wextra", 
-   "-fno-omit-frame-pointer", 
-   "-fsanitize=address"
-  ], 
-  "file": "src/element.cc"
- }, 
- {
-  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
-  "arguments": [
-   "g++", 
-   "-o", 
-   "src/outcar.o", 
-   "-c", 
-   "src/outcar.cc", 
-   "-I./include", 
-   "-I./third_party", 
-   "-std=c++11", 
-   "-g", 
-   "-Wall", 
-   "-Wextra", 
-   "-fno-omit-frame-pointer", 
-   "-fsanitize=address"
-  ], 
-  "file": "src/outcar.cc"
- }, 
- {
-  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
-  "arguments": [
-   "g++", 
-   "-o", 
-   "src/textio.o", 
-   "-c", 
-   "src/textio.cc", 
-   "-I./include", 
-   "-I./third_party", 
-   "-std=c++11", 
-   "-g", 
-   "-Wall", 
-   "-Wextra", 
-   "-fno-omit-frame-pointer", 
-   "-fsanitize=address"
-  ], 
-  "file": "src/textio.cc"
- }, 
- {
-  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
-  "arguments": [
-   "g++", 
-   "-o", 
-   "src/stringops.o", 
-   "-c", 
-   "src/stringops.cc", 
-   "-I./include", 
-   "-I./third_party", 
-   "-std=c++11", 
-   "-g", 
-   "-Wall", 
-   "-Wextra", 
-   "-fno-omit-frame-pointer", 
-   "-fsanitize=address"
-  ], 
-  "file": "src/stringops.cc"
- }, 
- {
-  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
-  "arguments": [
-   "g++", 
-   "-o", 
    "unit_test/error_test.out", 
    "unit_test/error_test.cc", 
    "./src/outcar.o", 
@@ -104,24 +28,15 @@
   "arguments": [
    "g++", 
    "-o", 
-   "unit_test/test_poscar.out", 
-   "unit_test/test_poscar.cc", 
-   "./src/outcar.o", 
-   "./src/element.o", 
-   "./src/incar.o", 
-   "./src/poscar.o", 
-   "./src/stringops.o", 
-   "./src/textio.o", 
+   "src/textio.o", 
+   "-c", 
+   "src/textio.cc", 
    "-I./include", 
    "-I./third_party", 
    "-std=c++11", 
-   "-g", 
-   "-Wall", 
-   "-Wextra", 
-   "-fno-omit-frame-pointer", 
-   "-fsanitize=address"
+   "-O3"
   ], 
-  "file": "unit_test/test_poscar.cc"
+  "file": "src/textio.cc"
  }, 
  {
   "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
@@ -152,9 +67,64 @@
   "arguments": [
    "g++", 
    "-o", 
-   "src/poscar.o", 
+   "src/stringops.o", 
    "-c", 
-   "src/poscar.cc", 
+   "src/stringops.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-O3"
+  ], 
+  "file": "src/stringops.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
+  "arguments": [
+   "g++", 
+   "-o", 
+   "src/element.o", 
+   "-c", 
+   "src/element.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-O3"
+  ], 
+  "file": "src/element.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
+  "arguments": [
+   "g++", 
+   "-o", 
+   "cgrad", 
+   "main.cc", 
+   "./src/outcar.o", 
+   "./src/element.o", 
+   "./src/incar.o", 
+   "./src/poscar.o", 
+   "./src/stringops.o", 
+   "./src/textio.o", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-O3"
+  ], 
+  "file": "main.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
+  "arguments": [
+   "g++", 
+   "-o", 
+   "unit_test/test_poscar.out", 
+   "unit_test/test_poscar.cc", 
+   "./src/outcar.o", 
+   "./src/element.o", 
+   "./src/incar.o", 
+   "./src/poscar.o", 
+   "./src/stringops.o", 
+   "./src/textio.o", 
    "-I./include", 
    "-I./third_party", 
    "-std=c++11", 
@@ -163,6 +133,36 @@
    "-Wextra", 
    "-fno-omit-frame-pointer", 
    "-fsanitize=address"
+  ], 
+  "file": "unit_test/test_poscar.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
+  "arguments": [
+   "g++", 
+   "-o", 
+   "src/outcar.o", 
+   "-c", 
+   "src/outcar.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-O3"
+  ], 
+  "file": "src/outcar.cc"
+ }, 
+ {
+  "directory": "/Users/ionizing/Documents/github/usefultools-for-vasp/grad3", 
+  "arguments": [
+   "g++", 
+   "-o", 
+   "src/poscar.o", 
+   "-c", 
+   "src/poscar.cc", 
+   "-I./include", 
+   "-I./third_party", 
+   "-std=c++11", 
+   "-O3"
   ], 
   "file": "src/poscar.cc"
  }, 
@@ -201,11 +201,7 @@
    "-I./include", 
    "-I./third_party", 
    "-std=c++11", 
-   "-g", 
-   "-Wall", 
-   "-Wextra", 
-   "-fno-omit-frame-pointer", 
-   "-fsanitize=address"
+   "-O3"
   ], 
   "file": "src/incar.cc"
  }, 
