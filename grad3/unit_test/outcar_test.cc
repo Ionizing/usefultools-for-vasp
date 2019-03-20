@@ -469,10 +469,10 @@ TEST_CASE("Parse Iteration") {
     REQUIRE_THROWS(outcar.saveAsMolden(it_vec, "animate.molden", 17));
   }
 
-  WHEN("save_one_frame") {
-    REQUIRE(true == outcar.save_one_frame(it_vec.back(), "POSCAR_frame_direct"));
-    REQUIRE(true == outcar.save_one_frame(it_vec.back(), "POSCAR_frame_cartesian", false));
-    REQUIRE_THROWS(outcar.save_one_frame(it_vec.back(), "./no_dir/POSCAR_frame"));
+  WHEN("save_one_frame_as_poscar") {
+    REQUIRE(true == outcar.save_one_frame_as_poscar(it_vec.back(), "POSCAR_frame_direct"));
+    REQUIRE(true == outcar.save_one_frame_as_poscar(it_vec.back(), "POSCAR_frame_cartesian", false));
+    REQUIRE_THROWS(outcar.save_one_frame_as_poscar(it_vec.back(), "./no_dir/POSCAR_frame"));
   }
 
   WHEN("save_as_poscar") {

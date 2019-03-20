@@ -1,5 +1,7 @@
 # cgrad
 
+[![Build Status](https://travis-ci.org/Ionizing/usefultools-for-vasp.svg?branch=master)](https://travis-ci.org/Ionizing/usefultools-for-vasp)
+
 ```bash
 An OUTCAR monitor for VASP relaxation calculations.
   Author: Ionizing PeterSmith_9@outlook.com
