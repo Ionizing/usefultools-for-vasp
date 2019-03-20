@@ -230,6 +230,7 @@ public:
                          const char*      prefix    = "vib_");
 
 private:
+  int       _dof;
   VecVib    _vibrations;
   Vibration parse_vib_mode        (const VecStr&    lines);
   bool      save_one_mode_as_xsf  (const Vibration& vib,

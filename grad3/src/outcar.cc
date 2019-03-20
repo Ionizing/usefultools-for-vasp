@@ -1473,6 +1473,24 @@ OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
         "Parse Vibrations failed:\n\
 \t IBRION != 5\n\
 \t IBRION == %d in this OUTCAR\n", this->_incar._IBRION);
+    throw str;
+    return out;
+  }
+
+  // parse 'DOF'
+  _dof = 0;
+  for (int i=0; i!=endline; ++i) {
+    if (is_start_with(lines[i], "   Degrees")) {
+      sscanf(lines[i].c_str(), "   Degrees of freedom DOF   = %d", &this->_dof);
+      break;
+    }
+  }
+  if (0 == _dof) {
+    string str = string_printf(
+        "Parse Vibrations failed:\n\
+\t Degrees of freedom not found.\n");
+    throw str;
+    return out;
   }
 
   int cnt_of_parsed_mode = 0;
