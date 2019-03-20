@@ -1478,14 +1478,14 @@ OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
   }
 
   // parse 'DOF'
-  _dof = 0;
+  this->_dof = 0;
   for (int i=0; i!=endline; ++i) {
     if (is_start_with(lines[i], "   Degrees")) {
       sscanf(lines[i].c_str(), "   Degrees of freedom DOF   = %d", &this->_dof);
       break;
     }
   }
-  if (0 == _dof) {
+  if (0 == this->_dof) {
     string str = string_printf(
         "Parse Vibrations failed:\n\
 \t Degrees of freedom not found.\n");
@@ -1493,10 +1493,23 @@ OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
     return out;
   }
 
-  int cnt_of_parsed_mode = 0;
+  // search for lines start with ' Eigenvectors'
   for (int i=startline; i!=endline; ++i) {
-    
+    if (is_start_with(lines[i], " Eigenvectors")) {
+      __current_line = i + 4;
+      break;
+    }
   }
+
+  int cnt_of_parsed_mode = 0;
+  for (int i=__current_line; i!=endline; ++i) {
+    if (cnt_of_parsed_mode == this->_incar._NIONS) {
+      break;
+    } else { /* */ }
+    VecStr vib_mode {
+      lines.begin() + i, lines.begin() + i + this->_incar._NIONS + 2 };
+  }
+  
 
   return out;
 }
