@@ -1611,9 +1611,100 @@ OUTCAR::Vibration OUTCAR::parse_vib_mode(const VecStr& lines) {
 }
 
 
+/*
+ *  bool save_one_mode_as_xsf(const Vibration& vib, const char* file_name, double scale)
+ *  scale will be used when saving the _dfreqs
+ */
 bool OUTCAR::save_one_mode_as_xsf(const Vibration& vib,
                                   const char*      file_name,
-                                  const int        mode_ind) {
+                                  const double     scale) const {
+  if (scale <= 0) {
+    string str = string_printf("Save one mode as xsf failed:\n\
+\t scale parameter invalid:\
+\t scale = %lf\n", scale);
+    throw str;
+    return false;
+  }
+
+  std::stringstream ss;
+  ss << "CRYSTAL\nPRIMVEC\n";
+  for (int i=0; i!=3; ++i) {
+    ss << string_printf("%21.16f %21.16f %21.16f\n",
+        this->_latticeVector(i, 0),
+        this->_latticeVector(i, 1),
+        this->_latticeVector(i, 2));
+  }
+  ss << "PRIMCOORD\n" << string_printf("%3d 1\n", this->_incar._NIONS);
+
+  for (int i=0; i!=this->_incar._NIONS; ++i) {
+    ss << string_printf("%-3s %21.6f %21.6f %21.6f %21.6f %21.6f %21.6f\n",
+        this->_elem_tab[i].c_str(),
+        this->_iterationVec.back()._atom_positions(i, 0),
+        this->_iterationVec.back()._atom_positions(i, 1),
+        this->_iterationVec.back()._atom_positions(i, 2),
+        vib._dfreq(i, 0) * scale,
+        vib._dfreq(i, 1) * scale,
+        vib._dfreq(i, 2) * scale);
+  }
+
+  std::ofstream ofs(file_name);
+  if (!ofs.good()) {
+    string str = string_printf("Saving one mode as xsf failed:\n\
+\t Creating output file failed.\
+\t file_name = %s", file_name);
+    throw str;
+    return false;
+  }
+  return true;
+}
+
+
+/*
+ * bool saveAsXsf(VecVib& vibs, const char* prefix, const int mode_ind)
+ *
+ * Saving all the modes in vibs when mode_ind == 1
+ *
+ * mode_ind starts from 1
+ */
+bool OUTCAR::saveAsXsf(const VecVib& vibs,
+                       const char*   prefix,
+                       const int     mode_ind,
+                       const double  scale) const {
+  if (scale <= 0) {
+    string str = string_printf("Save one mode as xsf failed:\n\
+\t scale parameter invalid:\
+\t scale = %lf\n", scale);
+    throw str;
+    return false;
+  }
+
+  try {
+
+    if (0 == mode_ind) {
+      for (int i=0; i!=static_cast<int>(vibs.size()); ++i) {
+        string file_name = string_printf("%s_%03d.xsf", prefix, i + 1);
+        bool flag = save_one_mode_as_xsf(vibs[i], file_name.c_str(), scale);
+        if (!flag) {
+        }
+      }
+    } else {
+      if (mode_ind > vibs.size() or mode_ind < 0) {
+          string str = string_printf("Saving Vibrations as XSF failed:\n\
+\t mode_ind out of range.\n\
+\t mode_ind = %d\n", mode_ind);
+          throw str;
+          return false;
+      }
+      string file_name = string_printf("%s_%03d.xsf", prefix, mode_ind);
+      save_one_mode_as_xsf(vibs[mode_ind - 1], file_name.c_str(), scale);
+    }
+
+  } catch (string msg) {
+      string str = string_printf("Saving Vibrations as XSF failed:\n\
+\t %s\n", msg.c_str());
+      throw str;
+      return false;
+  }
 
   return true;
 }

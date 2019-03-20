@@ -223,11 +223,12 @@ public:
                                int        endline   = -1);
 
   bool   saveAsXsf      (const VecVib&    vibs,
-                         const char*      prefix    = "vib_",
-                         const int        frame_ind = -1);
+                         const char*      prefix    = "vib",
+                         const int        mode_ind  = 0,
+                         const double     scale     = 1.0) const;
 
   bool   saveAsMol      (const VecVib&    vibs,
-                         const char*      prefix    = "vib_");
+                         const char*      prefix    = "vib_") const;
 
 private:
   int       _dof;
@@ -235,7 +236,7 @@ private:
   Vibration parse_vib_mode        (const VecStr&    lines);
   bool      save_one_mode_as_xsf  (const Vibration& vib,
                                    const char*      file_name,
-                                   const int        mode_ind);
+                                   const double     scale)  const;
   
 
 /*
