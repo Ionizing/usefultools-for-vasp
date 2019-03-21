@@ -37,7 +37,7 @@ test: cgrad
 			./cgrad -o unit_test/$${i}/OUTCAR ;					\
 	done ;
 
-unit_test: clean $(TEST_EXE)
+unit_test: $(TEST_EXE)
 	@cd unit_test; 										\
 	for i in `ls | grep -E 'out$$'` ; \
 		do														 	\
@@ -56,5 +56,6 @@ cgrad: main.cc $(OBJS) $(INCS)
 
 clean:
 	@rm -rf $(OBJS) $(TEST_EXE) ./unit_test/*.dSYM \
-		./unit_test/POSCAR* ./unit_test/animate.molden \
-		./unit_test/poscar_frames ./cgrad ./cgrad.dSYM
+		./unit_test/POSCAR* ./unit_test/*.mol* \
+		./unit_test/poscar_frames ./cgrad ./cgrad.dSYM \
+		./unit_test/*.xsf

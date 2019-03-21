@@ -11,6 +11,7 @@
 #include <poscar.hpp>
 #include <stringops.hpp>
 #include <incar.hpp>
+#include <constants.hpp>
 
 #include <sys/stat.h>     // mkdir
 #include <sys/types.h>     // mkdir
@@ -129,7 +130,7 @@ public:
     double _averageF;
     double _maxForce;
     MatX3d _atom_forces_dirs;
-    MatX3d _atom_positions;
+    MatX3d _atom_positions;           // Cartesian coordinates
     Vecd   _atom_forces;
     Mat33d _lattice_vector;
 
@@ -214,8 +215,10 @@ private:
 
 public:
   struct Vibration {
-    double  _freq;
-    MatX3d  _dfreq;
+    double  _freq_THz,
+            _freq_meV,
+            _freq_cm1;
+    MatX3d  _dxdydz;
   };
   using VecVib = std::vector<Vibration>;
   VecVib parseVibration (const VecStr&    lines,
@@ -228,7 +231,7 @@ public:
                          const double     scale     = 1.0) const;
 
   bool   saveAsMol      (const VecVib&    vibs,
-                         const char*      prefix    = "vib_") const;
+                         const char*      file_name = "modes.mol") const;
 
 private:
   int       _dof;

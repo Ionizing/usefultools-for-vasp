@@ -479,5 +479,16 @@ TEST_CASE("Parse Iteration") {
     REQUIRE(true == outcar.saveAsPoscar(it_vec));
   }
 
-
 }
+
+  TEST_CASE("Parsing vibration modes") {
+    std::ifstream ifs("./test7/OUTCAR");
+    REQUIRE(ifs.good());
+
+    OUTCAR outcar(ifs);
+    const VecStr& lines = outcar._contentVector;
+    REQUIRE_NOTHROW(outcar.parseVibration(lines));
+    REQUIRE_NOTHROW(outcar.saveAsXsf(outcar._vibrations));
+    REQUIRE_NOTHROW(outcar.saveAsMol(outcar._vibrations));
+  }
+

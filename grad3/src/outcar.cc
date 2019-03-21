@@ -1519,10 +1519,11 @@ OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
     VecStr vib_mode {
       lines.begin() + i, lines.begin() + i + this->_incar._NIONS + 2 };
     out.push_back(parse_vib_mode(vib_mode));   
-    i += this->_incar._NIONS + 3;
+    i += this->_incar._NIONS + 2;
+    ++cnt_of_parsed_mode;
   }
 
-  if (this->_dof != out.size()) {
+  if (this->_dof != static_cast<int>(out.size())) {
     string str = string_printf(
         "Parse Vibrations failed:\n\
 \t Degrees of freedom not consistent with VecVib from OUTCAR\n\
@@ -1531,7 +1532,7 @@ OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
     return out;
   }
 
-  return std::move(out);
+  return this->_vibrations = out;
 }
 
 
@@ -1575,8 +1576,14 @@ OUTCAR::VecVib OUTCAR::parseVibration(const VecStr& lines,
  *
  */
 OUTCAR::Vibration OUTCAR::parse_vib_mode(const VecStr& lines) {
+  /*
+   * std::cout << __FILE__ << __LINE__ << __FUNCTION__ << std::endl
+   *           << "lines.size() = " << lines.size() << std::endl
+   *           << lines.front() << std::endl << lines.back() << std::endl;
+   */
+
   Vibration out;
-  if (lines.size() != this->_incar._NIONS + 2) {
+  if (static_cast<int>(lines.size()) != this->_incar._NIONS + 2) {
     string str = string_printf(
         "Parse Vibration Mode failed:\n\
 \tVibration mode matrix.rows != NIONS\n\
@@ -1586,8 +1593,9 @@ OUTCAR::Vibration OUTCAR::parse_vib_mode(const VecStr& lines) {
   } else {/*  */}
   
   // parse freq
-  int flag = sscanf(lines[0].c_str(), "%*d f  = %*lf THz %*lf 2PiTHz %*lf cm-1 %lf meV", &out._freq);
-  if (1 != flag) {
+  int flag = sscanf(lines[0].c_str(), "%*d f  = %lf THz %*lf 2PiTHz %lf cm-1 %lf meV", 
+      &out._freq_THz, &out._freq_cm1, &out._freq_meV);
+  if (3 != flag) {
     string str = string_printf(
         "Parse Vibration Mode failed:\n\
 \tParse frequency failed:\n\
@@ -1596,14 +1604,15 @@ OUTCAR::Vibration OUTCAR::parse_vib_mode(const VecStr& lines) {
     return out;
   }
 
-  out._dfreq.resize(lines.size(), 3);
-  for (int i=2; lines.size(); ++i) {
+  out._dxdydz.resize(lines.size() - 2, 3);
+
+  for (int i=2; i!=static_cast<int>(lines.size()); ++i) {
     flag = sscanf(lines[i].c_str(), " %*s %*s %*s  %lf %lf %lf",
-        &out._dfreq(i-2, 0), &out._dfreq(i-2, 1), &out._dfreq(i-2, 2));
+        &out._dxdydz(i-2, 0), &out._dxdydz(i-2, 1), &out._dxdydz(i-2, 2));
     if (3 != flag) {
       string str = string_printf(
           "Parse Vibration Mode failed:\n\
-\tParse dfreqs failed:\n\
+\tParse dxdydz failed:\n\
 \t\"%s\"\n", lines[i].c_str());
     }
   }
@@ -1613,7 +1622,7 @@ OUTCAR::Vibration OUTCAR::parse_vib_mode(const VecStr& lines) {
 
 /*
  *  bool save_one_mode_as_xsf(const Vibration& vib, const char* file_name, double scale)
- *  scale will be used when saving the _dfreqs
+ *  scale will be used when saving the _dxdydz
  */
 bool OUTCAR::save_one_mode_as_xsf(const Vibration& vib,
                                   const char*      file_name,
@@ -1636,15 +1645,16 @@ bool OUTCAR::save_one_mode_as_xsf(const Vibration& vib,
   }
   ss << "PRIMCOORD\n" << string_printf("%3d 1\n", this->_incar._NIONS);
 
+  const MatX3d& atom_pos = this->_iterationVec.front()._atom_positions;
   for (int i=0; i!=this->_incar._NIONS; ++i) {
-    ss << string_printf("%-3s %21.6f %21.6f %21.6f %21.6f %21.6f %21.6f\n",
+    ss << string_printf("%-3s %21.16f %21.16f %21.16f %21.16f %21.16f %21.16f\n",
         this->_elem_tab[i].c_str(),
-        this->_iterationVec.back()._atom_positions(i, 0),
-        this->_iterationVec.back()._atom_positions(i, 1),
-        this->_iterationVec.back()._atom_positions(i, 2),
-        vib._dfreq(i, 0) * scale,
-        vib._dfreq(i, 1) * scale,
-        vib._dfreq(i, 2) * scale);
+        atom_pos(i, 0),
+        atom_pos(i, 1),
+        atom_pos(i, 2),
+        vib._dxdydz(i, 0) * scale / AU_TO_A,
+        vib._dxdydz(i, 1) * scale / AU_TO_A,
+        vib._dxdydz(i, 2) * scale / AU_TO_A);
   }
 
   std::ofstream ofs(file_name);
@@ -1655,6 +1665,9 @@ bool OUTCAR::save_one_mode_as_xsf(const Vibration& vib,
     throw str;
     return false;
   }
+
+  ofs << ss.str();
+  ofs.close();
   return true;
 }
 
@@ -1688,7 +1701,7 @@ bool OUTCAR::saveAsXsf(const VecVib& vibs,
         }
       }
     } else {
-      if (mode_ind > vibs.size() or mode_ind < 0) {
+      if (mode_ind > static_cast<int>(vibs.size()) or mode_ind < 0) {
           string str = string_printf("Saving Vibrations as XSF failed:\n\
 \t mode_ind out of range.\n\
 \t mode_ind = %d\n", mode_ind);
@@ -1709,6 +1722,54 @@ bool OUTCAR::saveAsXsf(const VecVib& vibs,
   return true;
 }
 
+
+/*
+ * bool saveAsMol (VecVib& vibs, const char* file_name)
+ */
+bool OUTCAR::saveAsMol(const VecVib& vibs, 
+                       const char* file_name) const {
+  std::stringstream ss;
+  ss << "[Molden Format]\n" << "[FREQ]\n";
+
+  for (const auto& e : vibs) {
+    ss << string_printf("%10.4f\n", e._freq_cm1);
+  }
+
+  ss << "[FR-COORD]\n";
+  const MatX3d& atom_pos = this->_iterationVec.front()._atom_positions;
+  for (int i=0; i!=this->_incar._NIONS; ++i) {
+    const string elem_type = this->_elem_tab[i];
+    ss << string_printf("%-3s %13.5f %13.5f %13.5f\n",
+        this->_elem_tab[i].c_str(),
+        atom_pos(i, 0) / AU_TO_A,
+        atom_pos(i, 1) / AU_TO_A, 
+        atom_pos(i, 2) / AU_TO_A);
+  }
+
+  ss << "[FR-NORM-COORD]\n";
+  for (int i=0; i!=static_cast<int>(vibs.size()); ++i) {
+    ss << "vibration " << i + 1 << "\n";
+    for (int j=0; j!=this->_incar._NIONS; ++j) {
+      ss << string_printf(" %13.5f %13.5f %13.5f\n",
+          vibs[i]._dxdydz(j, 0) / AU_TO_A, 
+          vibs[i]._dxdydz(j, 1) / AU_TO_A, 
+          vibs[i]._dxdydz(j, 2) / AU_TO_A);
+    }
+  }
+
+  std::ofstream ofs(file_name);
+  if (!ofs.good()) {
+    string str = string_printf("Saving as mol file failed:\n\
+\t Cannot open destination file.\n\
+\t %s open failed.\n", file_name);
+    throw str;
+    return false;
+  }
+
+  ofs << ss.str();
+  ofs.close();
+  return true;
+}
 
 
 
