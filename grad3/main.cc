@@ -64,17 +64,21 @@ I'll appreciate it very much. ^_^\n" _RESET};
        is_output_volume   = false,
        is_output_poscars  = false,
        is_output_molden   = false,
+       is_output_mol      = false,
        is_without_entropy = false,
        is_print_example   = false,
        is_print_help      = false,
        is_direct          = false,
-       is_clean_format    = false;
+       is_clean_format    = false ;
 
-  int  molden_skip        = 0;
+  int  molden_skip        = 0,
+       xsf_mode_ind       = -1;
 
-  std::string outcar_name  {"OUTCAR"};
-  std::string frame_prefix {"POSCAR_frame"};
-  std::string frame_sub_dir{"poscar_frames"};
+  std::string outcar_name  {"OUTCAR"},
+              frame_prefix {"POSCAR_frame"},
+              frame_sub_dir{"poscar_frames"},
+              xsf_prefix   {"mode"},
+              xsf_sub_dir  {"vib_modes"};
 
   options
     .allow_unrecognised_options()
@@ -104,7 +108,16 @@ I'll appreciate it very much. ^_^\n" _RESET};
     ("prefix", "Specify POSCAR file prefix when saving as POSCAR frames",
      cxxopts::value<std::string>(frame_prefix))
     ("dir", "Specify sub-directory in which POSCAR frames saved",
-     cxxopts::value<std::string>(frame_sub_dir));
+     cxxopts::value<std::string>(frame_sub_dir))
+    ("vibration", "Parse vibration modes from OUTCAR and save them as .mol file, IBRION = 5 is required",
+     cxxopts::value<bool>(is_output_mol))
+    ("xsf_mode", "Parse certain vibration mode and save it as .xsf file(s). 0 is treated as saving all the modes",
+     cxxopts::value<int>(xsf_mode_ind))
+    ("xsf_prefix", "Specify xsf file prefix when saving vibration modes, default: \'mode\'",
+     cxxopts::value<std::string>(xsf_prefix))
+    ("xsf_sub_dir", "Specify sub-directory in which xsf files saved, default: \'vib_modes\'",
+     cxxopts::value<std::string>(xsf_sub_dir))
+    ;
 
   auto result = options.parse(argc, argv);
 
@@ -223,5 +236,11 @@ Example:\n\
     outcar.saveAsPoscar(it_vec, frame_prefix.c_str(), 
         frame_sub_dir.c_str(), is_direct);
   }
+
+  if (is_output_mol or -1 != xsf_mode_ind) {
+    
+  }
+
+
   return 0;
 }

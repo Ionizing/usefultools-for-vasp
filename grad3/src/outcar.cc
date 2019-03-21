@@ -31,6 +31,9 @@ namespace ionizing {
       parseINCAR         (_contentVector, __current_line);
       parseKPoints       (_contentVector, __current_line);
       parseIterationVec  (_contentVector, __current_line);
+      if (5 == this->_incar._IBRION) {
+        parseVibration(_contentVector);
+      }
     } catch (std::string msg) {
       std::cerr << msg << std::endl;
       std::abort();
