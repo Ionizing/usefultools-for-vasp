@@ -237,13 +237,14 @@ public:
                                int        endline   = -1);
 
   bool   saveAsXsf      (const VecVib&    vibs,
-                         const char*      prefix    = "vib",
+                         const char*      prefix    = "vib_",
+                         const char*      folder    = "vib_modes",
                          const int        mode_ind  = 0,
                          const double     scale     = 1.0) const;
 
   bool   saveAsMol      (const VecVib&    vibs,
                          const char*      file_name = "modes.mol") const;
-
+  const VecVib& getVibrationVec() const ;
 private:
   int       _dof;
   VecVib    _vibrations;

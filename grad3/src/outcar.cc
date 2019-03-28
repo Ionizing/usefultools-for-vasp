@@ -1752,6 +1752,9 @@ OUTCAR::Vibration OUTCAR::parse_vib_mode(const VecStr& lines) {
   return out;
 }
 
+const OUTCAR::VecVib& OUTCAR::getVibrationVec() const {
+  return _vibrations;
+}
 
 /*
  *  bool save_one_mode_as_xsf(const Vibration& vib, const char* file_name, double scale)
@@ -1814,8 +1817,31 @@ bool OUTCAR::save_one_mode_as_xsf(const Vibration& vib,
  */
 bool OUTCAR::saveAsXsf(const VecVib& vibs,
                        const char*   prefix,
+                       const char*   folder,
                        const int     mode_ind,
                        const double  scale) const {
+  static auto create_dir = [](const char* path) -> bool {
+    const int status = mkdir(path, 0755);
+    return 0 == status;
+  };
+  static auto check_if_dir_exists = [](const char* path) -> bool {
+    struct stat info;
+    if (0 == stat(path, &info) and S_ISDIR(info.st_mode)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  if (!check_if_dir_exists(folder)) {  // Make sure folder exists
+    if (!create_dir(folder)) {
+      string str = string_printf("Create folder failed:\n\
+Cannot create %s .\n", folder);
+      throw str;
+      return false;
+    } else {  }
+  } else {  }
+
   if (scale <= 0) {
     string str = string_printf("Save one mode as xsf failed:\n\
 \t scale parameter invalid:\
@@ -1841,7 +1867,8 @@ bool OUTCAR::saveAsXsf(const VecVib& vibs,
           throw str;
           return false;
       }
-      string file_name = string_printf("%s_%03d.xsf", prefix, mode_ind);
+      
+      string file_name = string_printf("%s/%s_%03d.xsf", folder, prefix, mode_ind);
       save_one_mode_as_xsf(vibs[mode_ind - 1], file_name.c_str(), scale);
     }
 
@@ -1890,7 +1917,7 @@ bool OUTCAR::saveAsMol(const VecVib& vibs,
     }
   }
 
-  std::ofstream ofs(file_name);
+  std::ofstream ofs(file_name + string(".mol"));
   if (!ofs.good()) {
     string str = string_printf("Saving as mol file failed:\n\
 \t Cannot open destination file.\n\

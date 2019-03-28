@@ -24,7 +24,7 @@
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 3
 #define VERSION_PATCH 0
-#define VERSION "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR) "." STR(VERSION_PATCH)
+#define VERSION "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR) "." STR(VERSION_PATCH) "\n"
 
 enum COLOR {
   RED, GREEN
@@ -82,11 +82,14 @@ I'll appreciate it very much. ^_^\n" _RESET};
   int  molden_skip        = 0,
        xsf_mode_ind       = -1;
 
+  double xsf_scale        = 1.0;
+
   std::string outcar_name  {"OUTCAR"},
               frame_prefix {"POSCAR_frame"},
               frame_sub_dir{"poscar_frames"},
               xsf_prefix   {"mode"},
-              xsf_sub_dir  {"vib_modes"};
+              xsf_sub_dir  {"vib_modes"},
+              mol_prefix   {"modes"};
 
   options
     .allow_unrecognised_options()
@@ -125,6 +128,10 @@ I'll appreciate it very much. ^_^\n" _RESET};
      cxxopts::value<std::string>(xsf_prefix))
     ("xsf_sub_dir", "Specify sub-directory in which xsf files saved, default: \'vib_modes\'",
      cxxopts::value<std::string>(xsf_sub_dir))
+    ("xsf_scale", "Specify scale parameter when saving freq modes into xsfs, if you want to magnify the vector",
+     cxxopts::value<double>(xsf_scale))
+    ("mol_prefix", "Specify mol file prefix when saving vibration modes, default: \'modes\'",
+     cxxopts::value<std::string>(mol_prefix))
     ;
 
   auto result = options.parse(argc, argv);
@@ -246,7 +253,18 @@ Example:\n\
   }
 
   if (is_output_mol or -1 != xsf_mode_ind) {
-    
+    const OUTCAR::VecVib& vec_vib = outcar.getVibrationVec();
+    if (is_output_mol) {
+      std::cout << _GREEN "Saving vibration modes into mol file..." _RESET << std::endl;
+      outcar.saveAsMol(vec_vib, mol_prefix.c_str());
+      std::cout << _GREEN "Vibration modes have been saved into " << mol_prefix << ".mol" _RESET << std::endl;
+    }
+
+    if (-1 != xsf_mode_ind) {
+      std::cout << _GREEN "Saving vibration modes into xsf file(s)" _RESET << std::endl;
+      outcar.saveAsXsf(vec_vib , xsf_sub_dir.c_str(), 
+          xsf_prefix.c_str(), xsf_mode_ind, xsf_scale);
+    }
   }
 
 

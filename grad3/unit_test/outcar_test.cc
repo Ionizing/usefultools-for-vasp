@@ -514,6 +514,8 @@ TEST_CASE("Parsing vibration modes") {
   REQUIRE(ifs.good());
 
   OUTCAR outcar{ifs};
+
+  REQUIRE(outcar._initialPosition_cart.size() !=0 );
   
   const VecStr& lines = outcar._contentVector;
   REQUIRE_NOTHROW(outcar.parseVibration(lines));
