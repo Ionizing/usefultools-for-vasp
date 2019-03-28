@@ -136,4 +136,30 @@ perfoming test6 ...
  15 TOTEN -1062.01189  Lg|dE| -3.8  SCF   6  Max|F|  0.067  Avg|F|  0.032  AtomInd   0 Ox  Time  6.52
  16 TOTEN -1062.01595  Lg|dE| -2.4  SCF   6  Max|F|  0.040  Avg|F|  0.018  AtomInd   1 Oy  Time  7.10
  17 TOTEN -1062.01696  Lg|dE| -3.0  SCF   6  Max|F|  0.040  Avg|F|  0.020  AtomInd   1 Oy  Time  7.14
+perfoming test7 ...
+  1 TOTEN   -19.26551  Lg|dE|  1.3  SCF  23  Max|F|  0.547  Avg|F|  0.438  AtomInd   0 Hz  Time  0.03
+  2 TOTEN   -19.25520  Lg|dE| -2.0  SCF  13  Max|F|  1.088  Avg|F|  0.688  AtomInd   0 Hz  Time  0.02
+  3 TOTEN   -19.26817  Lg|dE| -1.9  SCF  13  Max|F|  0.546  Avg|F|  0.433  AtomInd   2 Hx  Time  0.02
+  4 TOTEN   -19.25888  Lg|dE| -2.0  SCF  13  Max|F|  0.879  Avg|F|  0.597  AtomInd   0 Hz  Time  0.02
+  5 TOTEN   -19.26872  Lg|dE| -2.0  SCF  13  Max|F|  0.558  Avg|F|  0.390  AtomInd   2 Hx  Time  0.02
+  6 TOTEN   -19.26552  Lg|dE| -2.5  SCF  13  Max|F|  0.552  Avg|F|  0.440  AtomInd   0 Hz  Time  0.02
+  7 TOTEN   -19.26552  Lg|dE| -inf  SCF  12  Max|F|  0.552  Avg|F|  0.440  AtomInd   0 Hz  Time  0.02
+  8 TOTEN   -19.26489  Lg|dE| -3.2  SCF  12  Max|F|  0.566  Avg|F|  0.448  AtomInd   2 Hx  Time  0.02
+  9 TOTEN   -19.26489  Lg|dE| -inf  SCF  11  Max|F|  0.566  Avg|F|  0.448  AtomInd   0 Hz  Time  0.02
+ 10 TOTEN   -19.26849  Lg|dE| -2.4  SCF  13  Max|F|  0.787  Avg|F|  0.509  AtomInd   3 Ny  Time  0.02
+ 11 TOTEN   -19.25272  Lg|dE| -1.8  SCF  13  Max|F|  1.159  Avg|F|  0.684  AtomInd   1 Hy  Time  0.02
+ 12 TOTEN   -19.26553  Lg|dE| -1.9  SCF  13  Max|F|  0.547  Avg|F|  0.438  AtomInd   0 Hz  Time  0.02
+ 13 TOTEN   -19.26553  Lg|dE| -inf  SCF  12  Max|F|  0.547  Avg|F|  0.438  AtomInd   0 Hz  Time  0.02
+ 14 TOTEN   -19.26817  Lg|dE| -2.6  SCF  13  Max|F|  0.546  Avg|F|  0.433  AtomInd   0 Hz  Time  0.02
+ 15 TOTEN   -19.25520  Lg|dE| -1.9  SCF  13  Max|F|  1.088  Avg|F|  0.688  AtomInd   2 Hx  Time  0.02
+ 16 TOTEN   -19.25888  Lg|dE| -2.4  SCF  13  Max|F|  0.879  Avg|F|  0.597  AtomInd   2 Hx  Time  0.02
+ 17 TOTEN   -19.26872  Lg|dE| -2.0  SCF  13  Max|F|  0.558  Avg|F|  0.390  AtomInd   0 Hz  Time  0.02
+ 18 TOTEN   -19.26552  Lg|dE| -2.5  SCF  13  Max|F|  0.552  Avg|F|  0.440  AtomInd   2 Hx  Time  0.02
+ 19 TOTEN   -19.26552  Lg|dE| -8.0  SCF  12  Max|F|  0.552  Avg|F|  0.440  AtomInd   2 Hx  Time  0.02
+ 20 TOTEN   -19.25734  Lg|dE| -2.1  SCF  13  Max|F|  1.093  Avg|F|  0.705  AtomInd   3 Ny  Time  0.02
+ 21 TOTEN   -19.25734  Lg|dE| -inf  SCF  12  Max|F|  1.093  Avg|F|  0.705  AtomInd   3 Nx  Time  0.02
+ 22 TOTEN   -19.25919  Lg|dE| -2.7  SCF  13  Max|F|  1.139  Avg|F|  0.632  AtomInd   1 Hy  Time  0.02
+ 23 TOTEN   -19.25525  Lg|dE| -2.4  SCF  13  Max|F|  1.259  Avg|F|  0.784  AtomInd   3 Ny  Time  0.02
+ 24 TOTEN   -19.26601  Lg|dE| -2.0  SCF  14  Max|F|  0.552  Avg|F|  0.445  AtomInd   0 Hz  Time  0.02
+ 25 TOTEN   -19.26601  Lg|dE| -8.0  SCF  13  Max|F|  0.552  Avg|F|  0.445  AtomInd   0 Hz  Time  0.02
 ```

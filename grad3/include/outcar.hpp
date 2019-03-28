@@ -11,6 +11,7 @@
 #include <poscar.hpp>
 #include <stringops.hpp>
 #include <incar.hpp>
+#include <constants.hpp>
 
 #include <sys/stat.h>     // mkdir
 #include <sys/types.h>     // mkdir
@@ -28,7 +29,7 @@ namespace ionizing{
 class OUTCAR {
 public:
   OUTCAR(std::istream&  is);
-  OUTCAR(const char*    file_name = "POSCAR");
+  OUTCAR(const char*    file_name = "OUTCAR");
   ~OUTCAR() = default;
 private:
   const string& file_to_string(std::istream& is);
@@ -68,7 +69,16 @@ private:
  * Parse Atom initial Positions
  */
 
-
+public:
+  bool parseInitialPositions(const VecStr& lines,
+                             const int     startline =  0,
+                                   int     endline   = -1);
+  const MatX3d& getInitialPositions_Cartesian() const;
+  const MatX3d& getInitialPositions_Direct() const;
+private:
+  MatX3d _initialPosition_cart,
+         _initialPosition_dire;
+  MatX3d parse_init_pos(const VecStr& lines);
 
 /*
  * Parse mini-INCAR
@@ -96,6 +106,7 @@ private:
   int    parse_nions        (const string& line);
   int    parse_nsw          (const string& line);
   int    parse_nkpts        (const string& line);
+  int    parse_nwrite       (const string& line);
 
 /*
  * Parse K-Point Path
@@ -129,7 +140,7 @@ public:
     double _averageF;
     double _maxForce;
     MatX3d _atom_forces_dirs;
-    MatX3d _atom_positions;
+    MatX3d _atom_positions;           // Cartesian coordinates
     Vecd   _atom_forces;
     Mat33d _lattice_vector;
 
@@ -214,8 +225,11 @@ private:
 
 public:
   struct Vibration {
-    double  _freq;
-    MatX3d  _dfreq;
+    double  _freq_THz,
+            _freq_meV,
+            _freq_cm1;
+    bool    _is_imag;
+    MatX3d  _dxdydz;
   };
   using VecVib = std::vector<Vibration>;
   VecVib parseVibration (const VecStr&    lines,
@@ -224,18 +238,20 @@ public:
 
   bool   saveAsXsf      (const VecVib&    vibs,
                          const char*      prefix    = "vib_",
-                         const int        frame_ind = -1);
+                         const char*      folder    = "vib_modes",
+                         const int        mode_ind  = 0,
+                         const double     scale     = 1.0) const;
 
   bool   saveAsMol      (const VecVib&    vibs,
-                         const char*      prefix    = "vib_");
-
+                         const char*      file_name = "modes.mol") const;
+  const VecVib& getVibrationVec() const ;
 private:
   int       _dof;
   VecVib    _vibrations;
   Vibration parse_vib_mode        (const VecStr&    lines);
   bool      save_one_mode_as_xsf  (const Vibration& vib,
                                    const char*      file_name,
-                                   const int        mode_ind);
+                                   const double     scale)  const;
   
 
 /*

@@ -330,8 +330,36 @@ TEST_CASE("INCAR Parameters in OUTCAR") {
     REQUIRE(incar_result._NKPTS         == outcar._incar._NKPTS        );
 }
 
+TEST_CASE("Parse Initial Position") {
+  VecStr lines {
+    " position of ions in fractional coordinates (direct lattice) ",
+    "   0.64620000  0.57360000  0.50000000",
+    "   0.50000000  0.35470000  0.50000000",
+    "   0.35380000  0.57360000  0.50000000",
+    "   0.50000000  0.50000000  0.50000000",
+    "",
+    " position of ions in cartesian coordinates  (Angst):",
+    "   3.87720000  4.01520000  4.00000000",
+    "   3.00000000  2.48290000  4.00000000",
+    "   2.12280000  4.01520000  4.00000000",
+    "   3.00000000  3.50000000  4.00000000" };
+
+  WHEN("Parsing Initial Positions") {
+    outcar._incar._NIONS = 4;
+    REQUIRE_NOTHROW(outcar.parseInitialPositions(lines));
+    REQUIRE(0 != outcar._initialPosition_cart.size());
+    REQUIRE(outcar._initialPosition_cart.size() == outcar._initialPosition_cart.size());
+    REQUIRE(outcar._initialPosition_dire(0, 0) == 0.64620000);
+    REQUIRE(outcar._initialPosition_cart(3, 2) == 4.00000000);
+
+    outcar._incar._NIONS = 0;
+    REQUIRE_THROWS(outcar.parseInitialPositions(lines));
+
+  }
+}
 
 TEST_CASE("Parse Iteration") {
+  outcar._incar._NIONS = 32;
 
   WHEN("parse_magmom") {
     const char* magmom_str = " number of electron    1026.0000000 magnetization     135.0000000";
@@ -479,5 +507,19 @@ TEST_CASE("Parse Iteration") {
     REQUIRE(true == outcar.saveAsPoscar(it_vec));
   }
 
-
 }
+
+TEST_CASE("Parsing vibration modes") {
+  std::ifstream ifs("./test7/OUTCAR");
+  REQUIRE(ifs.good());
+
+  OUTCAR outcar{ifs};
+
+  REQUIRE(outcar._initialPosition_cart.size() !=0 );
+  
+  const VecStr& lines = outcar._contentVector;
+  REQUIRE_NOTHROW(outcar.parseVibration(lines));
+  REQUIRE_NOTHROW(outcar.saveAsXsf(outcar._vibrations));
+  REQUIRE_NOTHROW(outcar.saveAsMol(outcar._vibrations));
+}
+

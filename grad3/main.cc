@@ -19,6 +19,13 @@
 #define _BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define _BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 3
+#define VERSION_PATCH 0
+#define VERSION "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR) "." STR(VERSION_PATCH) "\n"
+
 enum COLOR {
   RED, GREEN
 };
@@ -53,8 +60,9 @@ using std::string;
 int main(int argc, char* argv[]) {
   cxxopts::Options options{argv[0], 
 _YELLOW  
-"An OUTCAR monitor for VASP relaxation calculations.\n\
-  Author: Ionizing PeterSmith_9@outlook.com\n\
+"An OUTCAR monitor for VASP relaxation calculations.\n"
+"\tCurrent version is " VERSION
+"  Author: Ionizing PeterSmith_9@outlook.com\n\
   Acknoledgement: renh, zqj\n\
   If any issues come up or you have any feature requests, open issues at: \n\
   https://github.com/Ionizing/usefultools-for-vasp/issues \
@@ -64,17 +72,24 @@ I'll appreciate it very much. ^_^\n" _RESET};
        is_output_volume   = false,
        is_output_poscars  = false,
        is_output_molden   = false,
+       is_output_mol      = false,
        is_without_entropy = false,
        is_print_example   = false,
        is_print_help      = false,
        is_direct          = false,
-       is_clean_format    = false;
+       is_clean_format    = false ;
 
-  int  molden_skip        = 0;
+  int  molden_skip        = 0,
+       xsf_mode_ind       = -1;
 
-  std::string outcar_name  {"OUTCAR"};
-  std::string frame_prefix {"POSCAR_frame"};
-  std::string frame_sub_dir{"poscar_frames"};
+  double xsf_scale        = 1.0;
+
+  std::string outcar_name  {"OUTCAR"},
+              frame_prefix {"POSCAR_frame"},
+              frame_sub_dir{"poscar_frames"},
+              xsf_prefix   {"mode"},
+              xsf_sub_dir  {"vib_modes"},
+              mol_prefix   {"modes"};
 
   options
     .allow_unrecognised_options()
@@ -104,7 +119,20 @@ I'll appreciate it very much. ^_^\n" _RESET};
     ("prefix", "Specify POSCAR file prefix when saving as POSCAR frames",
      cxxopts::value<std::string>(frame_prefix))
     ("dir", "Specify sub-directory in which POSCAR frames saved",
-     cxxopts::value<std::string>(frame_sub_dir));
+     cxxopts::value<std::string>(frame_sub_dir))
+    ("vibration", "Parse vibration modes from OUTCAR and save them as .mol file, IBRION = 5 is required",
+     cxxopts::value<bool>(is_output_mol))
+    ("xsf_mode", "Parse certain vibration mode and save it as .xsf file(s). 0 is treated as saving all the modes",
+     cxxopts::value<int>(xsf_mode_ind))
+    ("xsf_prefix", "Specify xsf file prefix when saving vibration modes, default: \'mode\'",
+     cxxopts::value<std::string>(xsf_prefix))
+    ("xsf_sub_dir", "Specify sub-directory in which xsf files saved, default: \'vib_modes\'",
+     cxxopts::value<std::string>(xsf_sub_dir))
+    ("xsf_scale", "Specify scale parameter when saving freq modes into xsfs, if you want to magnify the vector",
+     cxxopts::value<double>(xsf_scale))
+    ("mol_prefix", "Specify mol file prefix when saving vibration modes, default: \'modes\'",
+     cxxopts::value<std::string>(mol_prefix))
+    ;
 
   auto result = options.parse(argc, argv);
 
@@ -223,5 +251,23 @@ Example:\n\
     outcar.saveAsPoscar(it_vec, frame_prefix.c_str(), 
         frame_sub_dir.c_str(), is_direct);
   }
+
+  if (is_output_mol or -1 != xsf_mode_ind) {
+    const OUTCAR::VecVib& vec_vib = outcar.getVibrationVec();
+    if (is_output_mol) {
+      std::cout << _GREEN "Saving vibration modes into mol file..." _RESET << std::endl;
+      outcar.saveAsMol(vec_vib, mol_prefix.c_str());
+      std::cout << _GREEN "Vibration modes have been saved into " << mol_prefix << ".mol" _RESET << std::endl;
+    }
+
+    if (-1 != xsf_mode_ind) {
+      std::cout << _GREEN "Saving vibration modes into xsf file(s)..." _RESET << std::endl;
+      outcar.saveAsXsf(vec_vib , xsf_sub_dir.c_str(), 
+          xsf_prefix.c_str(), xsf_mode_ind, xsf_scale);
+      std::cout << _GREEN "Vibration modes have been saved into " << xsf_sub_dir << _RESET << std::endl;
+    }
+  }
+
+
   return 0;
 }

@@ -17,6 +17,7 @@ struct INCAR {
       _NELMIN,        
       _NIONS,
       _NSW,     
-      _NKPTS;
+      _NKPTS,
+      _NWRITE;
 };
 #endif
