@@ -19,6 +19,13 @@
 #define _BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define _BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 3
+#define VERSION_PATCH 0
+#define VERSION "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR) "." STR(VERSION_PATCH)
+
 enum COLOR {
   RED, GREEN
 };
@@ -53,8 +60,9 @@ using std::string;
 int main(int argc, char* argv[]) {
   cxxopts::Options options{argv[0], 
 _YELLOW  
-"An OUTCAR monitor for VASP relaxation calculations.\n\
-  Author: Ionizing PeterSmith_9@outlook.com\n\
+"An OUTCAR monitor for VASP relaxation calculations.\n"
+"\tCurrent version is " VERSION
+"  Author: Ionizing PeterSmith_9@outlook.com\n\
   Acknoledgement: renh, zqj\n\
   If any issues come up or you have any feature requests, open issues at: \n\
   https://github.com/Ionizing/usefultools-for-vasp/issues \
