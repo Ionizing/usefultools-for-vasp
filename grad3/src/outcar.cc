@@ -1854,7 +1854,7 @@ Cannot create %s .\n", folder);
 
     if (0 == mode_ind) {
       for (int i=0; i!=static_cast<int>(vibs.size()); ++i) {
-        string file_name = string_printf("%s_%03d.xsf", prefix, i + 1);
+        string file_name = string_printf("%s/%s_%03d.xsf", folder, prefix, i + 1);
         bool flag = save_one_mode_as_xsf(vibs[i], file_name.c_str(), scale);
         if (!flag) {
         }

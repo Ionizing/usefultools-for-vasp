@@ -261,9 +261,10 @@ Example:\n\
     }
 
     if (-1 != xsf_mode_ind) {
-      std::cout << _GREEN "Saving vibration modes into xsf file(s)" _RESET << std::endl;
+      std::cout << _GREEN "Saving vibration modes into xsf file(s)..." _RESET << std::endl;
       outcar.saveAsXsf(vec_vib , xsf_sub_dir.c_str(), 
           xsf_prefix.c_str(), xsf_mode_ind, xsf_scale);
+      std::cout << _GREEN "Vibration modes have been saved into " << xsf_sub_dir << _RESET << std::endl;
     }
   }
 
