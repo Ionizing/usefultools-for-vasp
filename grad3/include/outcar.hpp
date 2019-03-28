@@ -29,7 +29,7 @@ namespace ionizing{
 class OUTCAR {
 public:
   OUTCAR(std::istream&  is);
-  OUTCAR(const char*    file_name = "POSCAR");
+  OUTCAR(const char*    file_name = "OUTCAR");
   ~OUTCAR() = default;
 private:
   const string& file_to_string(std::istream& is);
@@ -69,7 +69,16 @@ private:
  * Parse Atom initial Positions
  */
 
-
+public:
+  bool parseInitialPositions(const VecStr& lines,
+                             const int     startline =  0,
+                                   int     endline   = -1);
+  const MatX3d& getInitialPositions_Cartesian() const;
+  const MatX3d& getInitialPositions_Direct() const;
+private:
+  MatX3d _initialPosition_cart,
+         _initialPosition_dire;
+  MatX3d parse_init_pos(const VecStr& lines);
 
 /*
  * Parse mini-INCAR
@@ -97,6 +106,7 @@ private:
   int    parse_nions        (const string& line);
   int    parse_nsw          (const string& line);
   int    parse_nkpts        (const string& line);
+  int    parse_nwrite       (const string& line);
 
 /*
  * Parse K-Point Path
@@ -218,6 +228,7 @@ public:
     double  _freq_THz,
             _freq_meV,
             _freq_cm1;
+    bool    _is_imag;
     MatX3d  _dxdydz;
   };
   using VecVib = std::vector<Vibration>;
