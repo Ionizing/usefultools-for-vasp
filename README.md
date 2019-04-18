@@ -56,6 +56,7 @@ The result of `make test` shows [here](./grad3/test_result.md)
 
 ## Acknoledgement
 Supervisors: [renh](https://github.com/renh), [zqj](https://github.com/QijingZheng);
+
 Libraries used: [Eigen3](https://eigen.tuxfamily.org), [cxxopts](https://github.com/jarro2783/cxxopts), [Catch2](https://github.com/catchorg/Catch2)
 
 # Some screenshots for third_party visualizers
