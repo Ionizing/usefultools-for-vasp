@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/Ionizing/usefultools-for-vasp.svg?branch=master)](https://travis-ci.org/Ionizing/usefultools-for-vasp)
 
+**NOTE: This repository is deprecated and will not be maintained. Please consider the more powerful alternative [rsgrad](https://github.com/Ionizing/rsgrad).**
+
 ```
 An OUTCAR monitor for VASP relaxation calculations.
 	Current version is v0.3.0
